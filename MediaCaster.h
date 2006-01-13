@@ -33,7 +33,7 @@ extern winampMediaLibraryPlugin plugin;
 extern void authDialog              (HWND);
 extern void configDialog            (HWND);
 extern void aboutBox                (HWND);
-extern void connectionProblemBox    (HWND);
+extern void connectionProblemBox    (HWND, const char*);
 extern void newFeatureBox           (HWND, const char*, int&);
 extern void setStatusMessage        (HWND, const char*);
 extern void showAbortButton         (HWND, int);

@@ -24,9 +24,11 @@ class Tracer {
         
     protected:
         void print(const char* marker, const char* message) {
-            for (int i=0; i<tracerDepth; i++) fprintf(tracerFd, " ");
-            fprintf(tracerFd, "%s%s\n", marker, message);
-            fflush(tracerFd);
+            if (tracerFd) {
+                for (int i=0; i<tracerDepth; i++) fprintf(tracerFd, " ");            
+                fprintf(tracerFd, "%s%s\n", marker, message);
+                fflush(tracerFd);
+            }
         }
 
     public:
@@ -42,13 +44,13 @@ class Tracer {
         }
         
         void Logger(const char* msg, int num) {
-            char tmp[32];
+            char tmp[512];
             sprintf(tmp, "%s:%d", msg, num);
             print("-", tmp);
         }
         
         void Logger(const char* msg, const char* str) {
-            char tmp[1024];
+            char tmp[512];
             sprintf(tmp, "%s:%s%s%s", msg, str?"\"":"", str?str:"<NULL>", str?"\"":"");
             print("-", tmp);
         }        

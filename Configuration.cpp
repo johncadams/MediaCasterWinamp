@@ -24,6 +24,7 @@
 #define SORTDIR_PROPERTY    "sortdir"
 #define DATE_PROPERTY       "timestamp"
 #define UPDATE_PROPERTY     "autoupdate"
+#define MSG_PROPERTY        "message"
 
 // Default values
 #define DEFAULT_HOST        "mcaster.kicks-ass.net"
@@ -36,6 +37,7 @@
 #define DEFAULT_INST        "MediaCaster.exe"
 #define DEFAULT_BITR        "stream=1;bitrate=56%20kbps"
 #define DEFAULT_UPDATE      1
+#define DEFAULT_MSG         ""
 
 /*
 Configuration::Configuration() {
@@ -66,6 +68,7 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
     GetPrivateProfileString(CONFIG_SEC,PLAY_PROPERTY,  DEFAULT_PLAY, play,sizeof(play),iniPath);
     GetPrivateProfileString(CONFIG_SEC,INST_PROPERTY,  DEFAULT_INST, inst,sizeof(inst),iniPath);
     GetPrivateProfileString(CONFIG_SEC,BITR_PROPERTY,  DEFAULT_BITR, bitr,sizeof(bitr),iniPath);
+    GetPrivateProfileString(CONFIG_SEC,MSG_PROPERTY,   DEFAULT_MSG,  msg, sizeof(msg), iniPath);
     
     Configuration::setWinampUserPassword();
     
@@ -197,6 +200,14 @@ void Configuration::setAutoUpdate(int updt) {
     Configuration::updt = updt;
     WritePrivateProfileString(CONFIG_SEC, UPDATE_PROPERTY, updt?"1":"0", iniPath);
 }
+
+
+void Configuration::resetMessage() {
+    TRACE("Configuration::resetMessage");
+    strcpy(Configuration::msg, "");
+    WritePrivateProfileString(CONFIG_SEC, MSG_PROPERTY, msg, iniPath);
+}
+
 
 void Configuration::setWinampUserPassword() {
     TRACE("Configuration::setWinampUserPassword");

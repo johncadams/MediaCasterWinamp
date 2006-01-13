@@ -152,7 +152,7 @@ void CasterLibrary::downloadFunction() {
      } catch (ConnectionException& ex) {
         CATCH(ex);
         ::setConnectionFailed();
-        ::connectionProblemBox(hwnd);        
+        ::connectionProblemBox(hwnd, ex.getError());        
      }
      
 #ifdef NO_THREADS
@@ -202,6 +202,6 @@ void CasterLibrary::downloadUpgrade() {
     catch (ConnectionException& ex) {
         CATCH(ex);
         ::setConnectionFailed();
-        ::connectionProblemBox(hwnd);
+        ::connectionProblemBox(hwnd, ex.getError());
     }
 }

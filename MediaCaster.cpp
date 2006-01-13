@@ -97,29 +97,6 @@ static void (*cr_resize)                 (HWND hwndDlg, ChildWndResizeItem *list
 
 
 
-int init() {
-    TRACE("init");
-    configuration.load(plugin);  
-    
-    // add our root item to the tree
-    mlAddTreeItemStruct mla = {0,(char*)PLUGIN_NAME,1,};
-    SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,(WPARAM)&mla,ML_IPC_ADDTREEITEM);
-    treeId = mla.this_id;
-    
-    library = new CasterLibrary(treeId);
-    
-    // add our pop-up menus
-    rootMenus = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(IDR_POPUPMENU));    
-    return 0;
-}
-
-
-void quit() {
-    TRACE("quit");
-    delete library;
-}
-
-
 static int CenteredBox(HWND hwnd, const char* message, const char* title, int button) {
     TRACE("CenteredBox");
     unsigned len = 0;
@@ -181,10 +158,13 @@ void aboutBox(HWND hwnd) {
 }
 
 
-void connectionProblemBox(HWND hwnd) {
+void connectionProblemBox(HWND hwnd, const char* reason) {
     TRACE("connectionProblemBox");
+    string msg = "There was a problem connecting to the server";
+    msg += string("\n \nCause: ") +reason;
+    
     ::setStatusMessage(hwnd, "Connection FAILURE");
-    ::MsgBox(hwnd, "There was a problem connecting, check host and port", "Connection Error");
+    ::MsgBox(hwnd, msg.c_str(), "Connection Error");
     ::configDialog(hwnd);
 }
 
@@ -246,6 +226,45 @@ int isConnectionFailed() {
     return connFailed;
 }
 
+
+int init() {
+    TRACE("init");
+    configuration.load(plugin);  
+    
+    // add our root item to the tree
+    mlAddTreeItemStruct mla = {0,(char*)PLUGIN_NAME,1,};
+    SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,(WPARAM)&mla,ML_IPC_ADDTREEITEM);
+    treeId = mla.this_id;
+    
+    library = new CasterLibrary(treeId);
+    
+    // add our pop-up menus
+    rootMenus = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(IDR_POPUPMENU));
+    
+    // see if we have a pending error from a previous installer run
+    if (configuration.getMessage()[0]) {
+        string url = configuration.getURL( configuration.getInstallerPath() );
+        string msg = string("The auto-installer failed, you will need to run the installer manully:\n")+
+                     "   Cause: "+configuration.getMessage() +"\n\n"+
+                     "Workaround:\n"+
+                     "   1) Terminate Winamp\n"+
+                     "   2) Download the installer ("+url+")\n"+
+                     "   3) Execute the installer\n"+
+                     "   4) Re-enable Auto-Update (Config dialog)";
+               
+        MessageBox(plugin.hwndLibraryParent, msg.c_str(), "Error", MB_OK);
+        configuration.resetMessage();
+        configuration.setAutoUpdate(0);
+    }
+    
+    return 0;
+}
+
+
+void quit() {
+    TRACE("quit");
+    delete library;
+}
 
 
 static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -314,7 +333,7 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                     configuration.setAutoUpdate( IsDlgButtonChecked(configDlg,DLG_AUTOUPGRADE) );
                  
                     EndDialog(configDlg,LOWORD(wParam) == IDOK);
-                    if (changed) {
+                    if (changed || isConnectionFailed()) {
                         library->download();
                     }
                     break;                            
@@ -426,7 +445,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
     
                     while (cnt-->0) {
                         const Song* thissong = library->getSong(i);
-                        char   tmp[128];
+                        char   tmp[256];
                         string name;
     
                         switch (configuration.getSortColumn()) {
@@ -472,7 +491,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
         
                     if (lpdi->item.mask & (LVIF_TEXT|0)) {
                         if (lpdi->item.mask & LVIF_TEXT) {
-                            char   tmpbuf[128];
+                            char   tmpbuf[256];
                             string name;
                         
                             switch (lpdi->item.iSubItem) {
@@ -582,7 +601,6 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
         return 0;
       
     case WM_DESTROY:
-        //clearSongList();
         SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,skinlistViewId,ML_IPC_UNSKIN_LISTVIEW);
         return 0;
 

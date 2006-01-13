@@ -48,12 +48,12 @@ string Song::toUrl(string user, string passwd, string host, string port, string 
     TRACE("Song::toUrl");
     string url = string("http://") ; 
 /*
-    if (user.length()>0 || passwd.length()>0) url += user +":" +passwd +"@";
-*/
-    if (host.length()>0)                      url += host;
-    if (port.length()>0)                      url += ":" +port;
-    if (file.length()>0)                      url += file;
-    if (query.length()>0)                     url += "?" +query;
+    if (user.length()  >0 || 
+        passwd.length()>0)   url += user +":" +passwd +"@";  */
+    if (host.length()  >0)   url += host;
+    if (port.length()  >0)   url += ":" +port;
+    if (file.length()  >0)   url += file;
+    if (query.length() >0)   url += "?" +query;
     
     return url;                            
 }

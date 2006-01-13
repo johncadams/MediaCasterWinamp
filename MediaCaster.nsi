@@ -61,41 +61,61 @@ Section ""
   SetOutPath $1
   
   ; Close Winamp if its running
-  FindWindow $0 "Winamp v1.x"
-  SendMessage $0 ${WM_CLOSE} 0 0
-  Sleep 500
+  stopWinamp:
+    FindWindow $0 "Winamp v1.x"
+    IntCmp $0 0 stopWinampDone
+    SendMessage $0 ${WM_CLOSE} 0 0
+    Sleep 2000		; hopefully long enough, really need a better test
+    Goto stopWinamp
+  stopWinampDone:
+  
 
-
-  ; File to extract  
-  File Release\ml_mcaster.dll
+  installDll:
+    ; File to extract
+    ClearErrors
+    Delete $INSTDIR\Plugins\ml_mcaster.dll
+    IfErrors 0 +3
+      WriteINIStr $INSTDIR\Plugins\ml_mcaster.ini ml_mcaster message "Cannot replace $INSTDIR\Plugins\ml_mcaster.dll"
+      goto startWinamp      
+    File Release\ml_mcaster.dll
   
-  ; Write the installation path into the registry
-  WriteRegStr   HKLM SOFTWARE\MediaCaster "Install_Dir" "$INSTDIR"
+  createRegistry:
+    ; Write the installation path into the registry
+    WriteRegStr   HKLM SOFTWARE\MediaCaster "Install_Dir" "$INSTDIR"
   
-  ; Write the uninstall keys for Windows
-  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\MediaCaster" "DisplayName" "MediaCaster (v${MC_VERSION}) for Winamp"
-  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\MediaCaster" "UninstallString" '"$INSTDIR\mcaster_uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\MediaCaster" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\MediaCaster" "NoRepair" 1
-  WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\MediaCaster" "Version" "${MC_VERSION}"
-  WriteUninstaller "$INSTDIR\mcaster_uninstall.exe"
+    ; Write the uninstall keys for Windows
+    WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\MediaCaster" "DisplayName" "MediaCaster (v${MC_VERSION}) for Winamp"
+    WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\MediaCaster" "UninstallString" '"$INSTDIR\mcaster_uninstall.exe"'
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\MediaCaster" "NoModify" 1
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\MediaCaster" "NoRepair" 1
+    WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\MediaCaster" "Version" "${MC_VERSION}"
+    WriteUninstaller "$INSTDIR\mcaster_uninstall.exe"
   
   
-  ; prompt user, and if they select yes run winamp
-  MessageBox MB_YESNO|MB_ICONQUESTION \
+  createIni:
+    ; Delete anything from the original alpha
+    Delete       $INSTDIR\Plugins\ml_caster.dll
+    DeleteINISec $INSTDIR\winamp.ini ml_caster
+  
+    ; No longer used starting w/1.0
+    DeleteINIStr $INSTDIR\Plugins\ml_mcaster.ini ml_mcaster enabled
+    DeleteINIStr $INSTDIR\Plugins\ml_mcaster.ini ml_mcaster lastfilter
+    
+    ; Clear the error message
+    DeleteINIStr $INSTDIR\Plugins\ml_mcaster.ini ml_mcaster message
+  
+  
+  startWinamp:
+    ; prompt user, and if they select yes run winamp
+    MessageBox MB_YESNO|MB_ICONQUESTION \
              "The plug-in was installed. Would you like to run Winamp now?" \
              /SD IDYES \
              IDNO Done
     Exec '"$INSTDIR\Winamp.exe"'
+    
   Done:
   
-  ; Delete anything from the original alpha
-  Delete       $INSTDIR\Plugins\ml_caster.dll
-  DeleteINISec $INSTDIR\winamp.ini ml_caster
   
-  
-  ; No longer used starting w/1.0
-  DeleteINIStr $INSTDIR\Plugins\ml_mcaster.ini ml_mcaster enabled  
 
 SectionEnd
 

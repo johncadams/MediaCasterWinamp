@@ -23,6 +23,7 @@ HTTPMethod::HTTPMethod(string method, string url, string username, string passwo
         
         
 void HTTPMethod::addHeader(string header) {
+    TRACE("HTTPMethod::addHeader");
     JNL_HTTPGet::addheader(header.c_str());
 }
 
@@ -127,6 +128,7 @@ HTTPInfo::HTTPInfo(string url, string user, string passwd) throw (ConnectionExce
 
 
 char* getDateStr(long time) {
+    TRACE("getDateStr");
     struct tm* ctime = gmtime(&time);
     char*      str   = getDateStr(ctime);
     free(ctime);
@@ -135,6 +137,7 @@ char* getDateStr(long time) {
 
 
 char* getDateStr(struct tm* ctime) {
+    TRACE("getDateStr");
     char dow[4], mon[4];
     char tmp[256];
     switch (ctime->tm_wday) {
@@ -170,6 +173,7 @@ char* getDateStr(struct tm* ctime) {
 }
 
 long getDate(const char* date) {
+    TRACE("getDate");
     struct tm ctime;
     memset(&ctime, 0, sizeof(ctime));
     char   dow[4];

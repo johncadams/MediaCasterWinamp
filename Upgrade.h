@@ -9,7 +9,7 @@ class Upgrade {
         HWND hwnd;
         
     protected:
-        void downloadFunction()     throw(HTTPException);
+        void downloadFunction()     throw(ConnectionException);
         
     public:       
         void download        ()     throw(ConnectionException);

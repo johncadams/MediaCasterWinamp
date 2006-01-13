@@ -138,7 +138,7 @@ void MasterList::downloadFunction() throw(ConnectionException)  {
 
             newSongs->addSong( new Song(artist, title, album, genre, file, len, track, year, comment) );
             
-            char status[64];
+            char status[256];
             total += cnt+1;
             sprintf(status, "[Connected] Retrieving list: %3d%%", int( float(total*100./httpGet.contentLen())) );
             setStatusMessage(hwnd, status);
@@ -316,7 +316,7 @@ void DisplayListImpl::filter() {
     ::getSearchString(hwnd, filter, sizeof(filter));
     filterlen = filterFunction(filter);
     
-    char status[512];
+    char status[256];
     int  days  = filterlen/86400;
     int  count = filterlen%86400;
     int  hours = count/3600;

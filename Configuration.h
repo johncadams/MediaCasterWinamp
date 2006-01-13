@@ -22,6 +22,7 @@ class Configuration {
         char   play     [1024];
         char   inst     [1024];
         char   bitr     [  32];
+        char   msg      [1024];
         long   date;
         int    updt;
         
@@ -53,6 +54,7 @@ class Configuration {
         const char* getInstallerPath() { return inst;      }
         const char* getWinampDir    () { return winampDir; }
         const char* getPluginDir    () { return pluginDir; }
+        const char* getMessage      () { return msg;       }
         
         int         getSortColumn   () { return Configuration::sortcols[playlist]; }
         int         getSortDirection() { return Configuration::sortdirs[playlist]; }
@@ -70,6 +72,7 @@ class Configuration {
         void        setBitrate      (const char*);
         void        setBuildDate    (long);
         void        setAutoUpdate   (int);
+        void        resetMessage    ();
 };
 
 #endif /*CONFIG_H_*/
