@@ -103,15 +103,17 @@ int HTTPMethod::readLine(char*& buf) throw (HTTPException) {
                 JNL_HTTPGet::peek_bytes(buf,len);
                 for (int i=0; i<len; i++) {
                     char chr = buf[i];
-                    if (chr=='\n' || chr=='\r' || chr==EOF) {
+                    if (chr=='\n' || chr==EOF) {
                         memset(buf, 0, len);
                         int num = JNL_HTTPGet::get_bytes(buf, i+1);
-                        buf[--num] = 0;  // snip off the newline
+                        buf[--num] = 0;  // snip off the newline/EOF
+                        
+                        if (buf[num-1]=='\r') buf[--num] = 0; // snip off the return
                         return num;
                     }
                 }
                 delete buf;
-            }
+            }       
         }
         
         if (running == 1) return 0;  // We're done
