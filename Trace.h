@@ -6,11 +6,11 @@
 
 #ifdef TRACE_GLOBALS
 #ifdef DO_TRACING
-    FILE* tracerFd = fopen("/ml_mcaster.log", "w");
+    FILE*        tracerFd = fopen("C:/ml_mcaster.log", "w");    
 #else
-    FILE* tracerFd;
+    FILE*        tracerFd;
 #endif
-    int   tracerDepth = 0;
+    int          tracerDepth = 0;
 #else 
     extern FILE* tracerFd;
     extern int   tracerDepth;
@@ -23,37 +23,14 @@ class Tracer {
         const char* method;
         
     protected:
-        void print(const char* marker, const char* message) {
-            if (tracerFd) {
-                for (int i=0; i<tracerDepth; i++) fprintf(tracerFd, " ");            
-                fprintf(tracerFd, "%s%s\n", marker, message);
-                fflush(tracerFd);
-            }
-        }
+        void print(const char* marker, const char* message);
 
     public:
-        Tracer(const char* method) {
-            Tracer::method = method;
-            tracerDepth++;
-            print("", method);
-        }
+        Tracer(const char* method);        
+       ~Tracer();
         
-       ~Tracer() {
-            print("~", method);            
-            tracerDepth--;
-        }
-        
-        void Logger(const char* msg, int num) {
-            char tmp[512];
-            sprintf(tmp, "%s:%d", msg, num);
-            print("-", tmp);
-        }
-        
-        void Logger(const char* msg, const char* str) {
-            char tmp[512];
-            sprintf(tmp, "%s:%s%s%s", msg, str?"\"":"", str?str:"<NULL>", str?"\"":"");
-            print("-", tmp);
-        }        
+        void Logger(const char* msg, int num);        
+        void Logger(const char* msg, const char* str);
 };
 
 
