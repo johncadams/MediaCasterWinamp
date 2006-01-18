@@ -19,14 +19,15 @@ class SongList {
         SongList();
         virtual ~SongList();
         
-        int          getSize()        const { return songList->GetSize();           }
-        Song*        getSong(int ndx) const { return (Song*)songList->Get(ndx);     }
-        void         addSong(Song* song)    { songList->Add(song);                  }
+        int          getSize()            const { return songList->GetSize();           }
+        Song*        getSong(int ndx)     const;
+        Song*        getSong(const char*) const;
+        void         addSong(Song* song);
         void         purge();
         void         sort();
         
-        void         play()           const { playOrEnqueue(PLAY);                  }
-        void         enqueue()        const { playOrEnqueue(ENQUEUE);               }
+        void         play()               const { playOrEnqueue(PLAY);                  }
+        void         enqueue()            const { playOrEnqueue(ENQUEUE);               }
         int          toItemRecordList(itemRecordList&, int) const;
 };
 

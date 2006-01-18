@@ -92,6 +92,28 @@ SongList::~SongList() {
 }
 
 
+Song* SongList::getSong(int ndx) const {
+//  TRACE("SongList::getSong");
+    return (Song*)songList->Get(ndx);
+}
+
+
+Song* SongList::getSong(const char* path) const {
+//  TRACE("SongList::getSong");
+    int i=songList->GetSize();
+    while (i>0) {
+        Song* song = (Song*)songList->Get(--i);
+        if (strcmp(song->file.c_str(), path)==0) return song;
+    }
+    return NULL;
+}
+
+void SongList::addSong(Song* song) {
+//  TRACE("SongList::addSong");
+    songList->Add(song);
+}
+
+
 void SongList::purge() {
     TRACE("SongList::purge");
     if (songList) {
