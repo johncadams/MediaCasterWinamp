@@ -1,6 +1,7 @@
 #ifndef MEDIACASTER_H_
 #define MEDIACASTER_H_
 
+#include <windows.h>
 #include "gen_ml/ml.h"
 #include "gen_ml/listview.h"
 #include "Configuration.h"
