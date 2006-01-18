@@ -108,9 +108,11 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
 string Configuration::getURL(const char* file) {
     TRACE("Configuration::getURL");
     string port = Configuration::getPort()[0]?Configuration::getPort():"80";
-    string url  = string("http://") +Configuration::getHost() +":" +port +file;
-    return url;
+    string base = string("http://") +Configuration::getHost() +":" +port;
+    if (file[0]!='/') base += path;
+    return base+file;
 }
+
 
 void Configuration::setPlaylist(const char* playlist) {
     TRACE("Configuration::setPlaylist");
