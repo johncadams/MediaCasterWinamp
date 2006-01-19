@@ -9,9 +9,10 @@
 class MasterList {
     private:
         char*        name;
-        SongList*    masterList;
+        SongList*    songList;
         HWND         hwnd;
         int          refCount;
+        int          stopLoading;
                 
         virtual ~MasterList();
 
@@ -26,31 +27,40 @@ class MasterList {
         void         clear();
         void         download() throw(ConnectionException);
         void         setHwnd(HWND);
-        
-        int          getSize()        const { return masterList->getSize();         }
-        Song*        getSong(int ndx) const { return masterList->getSong(ndx);      }
+        void         abort()                { stopLoading = 1;                      }
+        int          isAborted()      const { return stopLoading;                   }
+
+        HWND         getHwnd()        const { return hwnd;                          }
+        int          getSize()        const { return songList->getSize();           }
+        Song*        getSong(int ndx) const { return songList->getSong(ndx);        }
 };
 
 
 class DisplayList {
-    public:
-        virtual ~DisplayList() {}
-        
+    protected:
+       virtual ~DisplayList() {}
+       
+    public:                
         virtual const char*  getName()            const = 0;
         virtual int          getSize()            const = 0;
+        virtual HWND         getHwnd()            const = 0;
+        virtual int          getTreeId()          const = 0;
         virtual const Song*  getSong(int ndx)     const = 0;
+        virtual int          isAborted()          const = 0;
         virtual void         clear()                    = 0;
-        virtual void         search()                   = 0;
+        virtual void         display()                  = 0;
         virtual void         sort()                     = 0;
         virtual void         filter()                   = 0;
-        virtual int          getTreeId()          const = 0;
         virtual void         setHwnd(HWND hwnd)         = 0;
         virtual void         play()               const = 0;
         virtual void         enqueue()            const = 0;
         virtual void         drop(POINT)          const = 0;
         virtual void         abort()              const = 0;
         virtual void         download()                 = 0;
-        virtual MasterList*  getMasterList()            = 0;
+        
+        virtual MasterList*  referenceMasterList()      = 0;
+        virtual DisplayList* addReference()             = 0;
+        virtual void         deleteReference()          = 0;
 };
 
 
@@ -58,12 +68,12 @@ class DisplayListImpl: public DisplayList {
     private:
         char*               name;
         MasterList*         masterList;
-        SongList*           displayList;
-        HWND                hwnd;
+        SongList*           songList;
         int                 treeId;
+        int                 refCount;
                 
     protected:
-        virtual MasterList* getMasterList();
+        virtual MasterList* referenceMasterList();
         virtual void        downloadFunction() throw(ConnectionException);
         virtual void        sortFunction();
         virtual unsigned    filterFunction(const char*);
@@ -75,18 +85,24 @@ class DisplayListImpl: public DisplayList {
         
         virtual const char*  getName()    const;
         virtual int          getSize()    const;
-        virtual const Song*  getSong(int) const;        
+        virtual int          getTreeId()  const;
+        virtual HWND         getHwnd()    const;
+        virtual const Song*  getSong(int) const;
+        virtual int          isAborted()  const;
         virtual void         clear();
-        virtual void         search();
+        virtual void         display();
         virtual void         sort();
-        virtual void         filter();                        
-        virtual void         download() throw(ConnectionException);
-        virtual void         abort()      const;
+        virtual void         filter();
+        virtual void         setHwnd(HWND hwnd);
+
         virtual void         play()       const;
         virtual void         enqueue()    const;
-        virtual void         drop(POINT)  const;        
-        virtual int          getTreeId()  const;
-        virtual void         setHwnd(HWND hwnd);
+        virtual void         drop(POINT)  const;
+        virtual void         abort()      const;
+        virtual void         download() throw(ConnectionException);
+        
+        virtual DisplayList* addReference();
+        virtual void         deleteReference();
 };
 
 #endif /*DISPLAYLIST_H*/

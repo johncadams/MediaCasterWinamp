@@ -4,15 +4,28 @@
 #include "DisplayList.h"
 
 
-class PlayList: public DisplayListImpl {
+class SearchPlayList: public DisplayListImpl {
     private:
         char* prefilter;
                 
     public:
-        PlayList(const char*, DisplayList&, const char* prefilter);
-        virtual ~PlayList();
+        SearchPlayList(const char*, const char*, const char*, DisplayList&);
+        virtual ~SearchPlayList();
         
         virtual unsigned filterFunction(const char*);
+};
+
+
+class M3uPlayList: public DisplayListImpl {
+    private:
+        char*       m3u;
+        MasterList* rootList;
+                
+    public:
+        M3uPlayList(const char*, const char*, const char*, DisplayList&);
+        virtual ~M3uPlayList();
+        
+        virtual void downloadFunction() throw(ConnectionException);
 };
 
 
@@ -20,19 +33,17 @@ class PlayLists {
     private:
         C_ItemList*  playLists;
         DisplayList& rootList;
-        
-    protected:
-        virtual void purge();
+        HWND         hwnd;
         
     public:
         PlayLists(DisplayList&);        
         virtual PlayLists::~PlayLists();
 
-        virtual void         download(HWND) throw(ConnectionException);
-        virtual void         refresh (HWND) throw(ConnectionException);
-        virtual void         clear();
-        virtual int          getSize()              { return playLists->GetSize();             }
-        virtual DisplayList* getDisplayList(int x)  { return (DisplayList*)playLists->Get(x);  }
+        virtual void         setHwnd(HWND)          { PlayLists::hwnd = hwnd;                 }
+        virtual void         download() throw(ConnectionException);
+        virtual void         purge();
+        virtual int          getSize()              { return playLists->GetSize();            }
+        virtual DisplayList* getDisplayList(int x)  { return (DisplayList*)playLists->Get(x); }
 };
 
 

@@ -30,7 +30,7 @@ CasterLibrary::~CasterLibrary() {
     TRACE("CasterLibrary::~CasterLibrary");
     delete upgrade;
     delete playLists;
-    delete displayList;
+    displayList->deleteReference();
 }
 
 
@@ -39,6 +39,7 @@ void CasterLibrary::setTreeId(int treeId, HWND hwnd) {
     
     currentList = displayList;
     if (playLists) {
+        playLists->setHwnd(hwnd);
         for (int x=0; x<playLists->getSize(); x++) {
             DisplayList* playList = playLists->getDisplayList(x);
             if (playList->getTreeId() == treeId) {
@@ -77,13 +78,13 @@ void CasterLibrary::abort() {
 }
 
 
-void CasterLibrary::play() {
+void CasterLibrary::play() const {
     TRACE("CasterLibrary::play");
     currentList->play();
 }
 
 
-void CasterLibrary::enqueue() {
+void CasterLibrary::enqueue() const {
     TRACE("CasterLibrary::enqueue");
     currentList->enqueue();
 }
@@ -101,7 +102,7 @@ const Song* CasterLibrary::getSong(int index) {
 }
 
 
-void CasterLibrary::drop(POINT point) {
+void CasterLibrary::drop(POINT point) const {
     TRACE("CasterLibrary::drop");
     currentList->drop(point);                  
 }
@@ -141,7 +142,7 @@ void CasterLibrary::downloadFunction() {
     try {
         if (configuration.isAutoUpdate()) upgrade->download();     
         displayList->download();
-        playLists->download(plugin.hwndLibraryParent);
+        playLists->download();
         ::setConnectionSuccess();
 
     } catch (HTTPAuthenticationException& ex) {
@@ -163,9 +164,9 @@ void CasterLibrary::downloadFunction() {
 }
 
 
-void CasterLibrary::search() {
-    TRACE("CasterLibrary::search");
-    currentList->search();                 
+void CasterLibrary::display() {
+    TRACE("CasterLibrary::display");
+    currentList->display();                 
 }
 
 

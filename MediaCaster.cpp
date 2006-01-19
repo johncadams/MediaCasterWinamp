@@ -574,7 +574,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
             GetDlgItemText(mainDlg,DLG_SEARCH,filter,sizeof(filter));
             filter[255]=0;
             configuration.setFilter(filter);
-            library->search();
+            library->display();
             
         } else if (wParam == DOWNLOAD_TIMER) {
             TRACE("mainPageCallback/DOWNLOAD_TIMER");

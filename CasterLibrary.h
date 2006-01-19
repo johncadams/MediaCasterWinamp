@@ -30,14 +30,14 @@ class CasterLibrary {
        virtual void        clear();
        virtual void        sort();
        virtual void        download();
-       virtual void        search();
+       virtual void        display();
        virtual void        abort();
-       virtual void        enqueue();
-       virtual void        play();
+       virtual void        enqueue() const;
+       virtual void        play() const;
        virtual int         getSize();
        virtual const Song* getSong(int);
        virtual int         checkId(int);
-       virtual void        drop(POINT);
+       virtual void        drop(POINT) const;
        virtual int         isUpgradeAvailable();
        virtual void        downloadUpgrade();
 };

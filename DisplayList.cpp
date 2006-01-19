@@ -9,9 +9,6 @@
 #include "Trace.h"
 
 
-static int stopLoading;
-
-
 static void parseQuickSearch(char* out, const char* in) {
     TRACE("parseQuickSearch");
     int inquotes = 0;
@@ -57,7 +54,7 @@ static int in_string(const char* string, const char* substring) {
 MasterList::MasterList(const char* name) {
     TRACE("MasterList::MasterList");
     MasterList::name           = strdup(name);
-    MasterList::masterList     = new SongList();
+    MasterList::songList       = new SongList();
     MasterList::refCount       = 1;
     JNL::open_socketlib();
 }
@@ -65,7 +62,7 @@ MasterList::MasterList(const char* name) {
 
 MasterList::~MasterList() {
     TRACE("MasterList::~MasterList");
-    delete masterList;
+    delete songList;
     delete name;
     JNL::close_socketlib();
 }
@@ -95,7 +92,7 @@ void MasterList::setHwnd(HWND hwnd) {
 
 void MasterList::clear() {
     TRACE("MasterList::clear");
-    masterList->purge();
+    songList->purge();
 }
 
 
@@ -148,23 +145,23 @@ void MasterList::downloadFunction() throw(ConnectionException)  {
     } catch (HTTPAuthenticationException& ex) {
         // Have to do it this way or this exception isn't rethrown correctly
         delete newSongs;
-        masterList->purge();
+        songList->purge();
         RETHROW(ex);
 
     } catch (ConnectionException& ex) {
         delete newSongs;
-        masterList->purge();
+        songList->purge();
         RETHROW(ex);
     }
 
     if (stopLoading) {
         delete newSongs;
     } else {
-        delete masterList;
-        masterList = newSongs;
+        delete songList;
+        songList = newSongs;
     }
     
-    LOGGER("size", masterList->getSize());
+    LOGGER("size", songList->getSize());
 }
 
 
@@ -174,16 +171,18 @@ DisplayListImpl::DisplayListImpl(int treeId) {
     TRACE("DisplayListImpl::DisplayListImpl");
     DisplayListImpl::name        = strdup(PLUGIN_NAME);
     DisplayListImpl::masterList  = new MasterList(name);
-    DisplayListImpl::displayList = new SongList();
-    DisplayListImpl::treeId      = treeId;   
+    DisplayListImpl::songList    = new SongList();
+    DisplayListImpl::treeId      = treeId;
+    DisplayListImpl::refCount    = 1;
 }
 
 
 DisplayListImpl::DisplayListImpl(const char* name, DisplayList& clone) {
     TRACE("DisplayListImpl::DisplayListImpl (clone)");
     DisplayListImpl::name        = strdup(name);
-    DisplayListImpl::masterList  = clone.getMasterList();
-    DisplayListImpl::displayList = new SongList();
+    DisplayListImpl::masterList  = clone.referenceMasterList();
+    DisplayListImpl::songList    = new SongList();
+    DisplayListImpl::refCount    = 1;
                 
     // add the item to the tree
     mlAddTreeItemStruct mla = {clone.getTreeId(),(char*)name,1,};
@@ -195,15 +194,31 @@ DisplayListImpl::DisplayListImpl(const char* name, DisplayList& clone) {
 DisplayListImpl::~DisplayListImpl() {
     TRACE("DisplayListImpl::~DisplayListImpl");
     SendMessage(plugin.hwndLibraryParent, WM_ML_IPC, treeId, ML_IPC_DELTREEITEM);
-    delete displayList;
+    delete songList;
     masterList->deleteReference();
     delete name;
 }
 
 
-MasterList* DisplayListImpl::getMasterList() {
-    TRACE("DisplayListImpl::getMasterList");
+MasterList* DisplayListImpl::referenceMasterList() {
+    TRACE("DisplayListImpl::referenceMasterList");
     return masterList->addReference();
+}
+
+
+DisplayList* DisplayListImpl::addReference() {
+    TRACE("DisplayListImpl::addReference");
+    this->refCount++;
+    return this;
+}
+
+
+void DisplayListImpl::deleteReference() {
+    TRACE("DisplayListImpl::deleteReference");
+    if (--refCount==0) {
+        LOGGER("refCount",refCount);
+        delete this;
+    }
 }
 
 
@@ -215,27 +230,19 @@ const char* DisplayListImpl::getName() const {
 
 int DisplayListImpl::getSize() const {
 //  TRACE("DisplayListImpl::getSize");
-    return displayList->getSize();
+    return songList->getSize();
 }
 
 
 const Song* DisplayListImpl::getSong(int i) const {
 //  TRACE("DisplayListImpl::getSong");
-    return displayList->getSong(i);
+    return songList->getSong(i);
 }
 
 
 int DisplayListImpl::getTreeId() const {
     TRACE("DisplayListImpl::getTreeId");
     return DisplayListImpl::treeId;
-}
-
-
-void DisplayListImpl::setHwnd(HWND hwnd) {
-    TRACE("DisplayListImpl::setHwnd");
-    LOGGER("hwnd",(int)hwnd);
-    DisplayListImpl::hwnd = hwnd;
-    masterList->setHwnd(hwnd);
 }
 
 
@@ -247,20 +254,38 @@ void DisplayListImpl::download() throw(ConnectionException) {
 
 void DisplayListImpl::abort() const {
     TRACE("DisplayListImpl::abort");
-    stopLoading = 1;
+    masterList->abort();
+}
+
+
+int DisplayListImpl::isAborted() const {
+//  TRACE("DisplayListImpl::abort");
+    return masterList->isAborted();
 }
 
 
 void DisplayListImpl::clear() {
     TRACE("DisplayListImpl::clear");
-    displayList->purge();
+    songList->purge();
     masterList->clear();
+}
+
+
+HWND DisplayListImpl::getHwnd() const {
+//  TRACE("DisplayListImpl::getHwnd");
+    return masterList->getHwnd();
+}
+
+
+void DisplayListImpl::setHwnd(HWND hwnd) {
+    TRACE("DisplayListImpl::setHwnd");
+    masterList->setHwnd(hwnd);
 }
 
 
 void DisplayListImpl::sortFunction() {
     TRACE("DisplayListImpl::sortFunction");
-    displayList->sort();
+    songList->sort();
 }
 
 
@@ -268,8 +293,8 @@ void DisplayListImpl::sort() {
     TRACE("DisplayListImpl::sort");
     sortFunction();
     ListView_SetItemCount(listView.getwnd(),0);
-    ListView_SetItemCount(listView.getwnd(),displayList->getSize());
-    ListView_RedrawItems (listView.getwnd(),0,displayList->getSize()-1);
+    ListView_SetItemCount(listView.getwnd(),songList->getSize());
+    ListView_RedrawItems (listView.getwnd(),0,songList->getSize()-1);
 }
 
 
@@ -280,7 +305,7 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
     ::parseQuickSearch(filteritems, filter);
 
     unsigned length = 0;
-    displayList->purge();
+    songList->purge();
     for (int i=0; i<masterList->getSize(); i++) {        
         Song* song = masterList->getSong(i);
         char year[32]="";
@@ -302,7 +327,7 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
             if (*p) continue;
         }
         length += song->songlen;
-        displayList->addSong( song->addReference() );
+        songList->addSong( song->addReference() );
     }
     return length;
 }
@@ -313,7 +338,7 @@ void DisplayListImpl::filter() {
     char filter[256];
     unsigned filterlen = 0;  
     
-    ::getSearchString(hwnd, filter, sizeof(filter));
+    ::getSearchString(getHwnd(), filter, sizeof(filter));
     filterlen = filterFunction(filter);
     
     char status[256];
@@ -322,21 +347,21 @@ void DisplayListImpl::filter() {
     int  hours = count/3600;
     int  mins  =(count/60)%60;
     int  secs  = count%60;
-    if (days==0) wsprintf(status,"%d items [%d:%02d:%02d]",         displayList->getSize(),     hours,mins,secs);
-    else         wsprintf(status,"%d items [%d days+%d:%02d:%02d]", displayList->getSize(),days,hours,mins,secs);
-    ::setStatusMessage(hwnd, status);
+    if (days==0) wsprintf(status,"%d items [%d:%02d:%02d]",         songList->getSize(),     hours,mins,secs);
+    else         wsprintf(status,"%d items [%d days+%d:%02d:%02d]", songList->getSize(),days,hours,mins,secs);
+    ::setStatusMessage(getHwnd(), status);
 }
 
 
 void DisplayListImpl::play() const {
     TRACE("DisplayListImpl::play");
-    displayList->play();
+    songList->play();
 }
 
 
 void DisplayListImpl::enqueue() const {
     TRACE("DisplayListImpl::enqueue");
-    displayList->enqueue();
+    songList->enqueue();
 }
 
         
@@ -349,7 +374,7 @@ void DisplayListImpl::drop(POINT p) const {
 
     if (m.result>0) {
         itemRecordList recList={0,}; 
-        displayList->toItemRecordList(recList, 1);
+        songList->toItemRecordList(recList, 1);
         if (recList.Size) {
             m.flags  = 0;
             m.result = 0;
@@ -364,13 +389,13 @@ void DisplayListImpl::drop(POINT p) const {
 void DisplayListImpl::downloadFunction() throw(ConnectionException) {
     TRACE("DisplayListImpl::downloadFunction");
     masterList->download();
-    DisplayListImpl::search();
-    ListView_SetItemCount(listView.getwnd(), displayList->getSize());    
+    DisplayListImpl::display();
+    ListView_SetItemCount(listView.getwnd(), songList->getSize());    
 }
 
 
-void DisplayListImpl::search() {
-    TRACE("DisplayListImpl::search");
+void DisplayListImpl::display() {
+    TRACE("DisplayListImpl::display");
     filter();
     sort();    
 }
