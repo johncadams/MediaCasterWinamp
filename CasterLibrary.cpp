@@ -41,7 +41,7 @@ void CasterLibrary::setTreeId(int treeId, HWND hwnd) {
     if (playLists) {
         playLists->setHwnd(hwnd);
         for (int x=0; x<playLists->getSize(); x++) {
-            DisplayList* playList = playLists->getDisplayList(x);
+            PlayList* playList = playLists->getPlayList(x);
             if (playList->getTreeId() == treeId) {
                 currentList = playList;
                 break;
@@ -175,7 +175,7 @@ int CasterLibrary::checkId(int treeId) {
     if (displayList->getTreeId() == treeId) return true;
     
     for (int x=0; x<playLists->getSize(); x++) {
-        DisplayList* playList = playLists->getDisplayList(x);
+        PlayList* playList = playLists->getPlayList(x);
         if (playList->getTreeId() == treeId) return true;
     }
     

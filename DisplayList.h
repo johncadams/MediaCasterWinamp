@@ -5,8 +5,11 @@
 #include "Song.h"
 #include "SongList.h"
 
+class M3uPlayList;
 
 class MasterList {
+    friend class M3uPlayList;
+    
     private:
         char*        name;
         SongList*    songList;
@@ -27,12 +30,13 @@ class MasterList {
         void         clear();
         void         download() throw(ConnectionException);
         void         setHwnd(HWND);
-        void         abort()                { stopLoading = 1;                      }
-        int          isAborted()      const { return stopLoading;                   }
+        void         abort()                        { stopLoading = 1;                      }
+        int          isAborted()              const { return stopLoading;                   }
 
-        HWND         getHwnd()        const { return hwnd;                          }
-        int          getSize()        const { return songList->getSize();           }
-        Song*        getSong(int ndx) const { return songList->getSong(ndx);        }
+        HWND         getHwnd()                const { return hwnd;                          }
+        int          getSize()                const { return songList->getSize();           }
+        Song*        getSong(int ndx)         const { return songList->getSong(ndx);        }
+        Song*        getSong(const char* pth) const { return songList->getSong(pth);        }
 };
 
 
@@ -65,6 +69,8 @@ class DisplayList {
 
 
 class DisplayListImpl: public DisplayList {
+    friend class M3uPlayList;
+    
     private:
         char*               name;
         MasterList*         masterList;

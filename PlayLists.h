@@ -4,7 +4,14 @@
 #include "DisplayList.h"
 
 
-class SearchPlayList: public DisplayListImpl {
+class PlayList: public DisplayListImpl {
+    public:
+        PlayList(const char* name, const char* desc, DisplayList& displayList) :
+            DisplayListImpl(name, displayList) {}
+};
+
+
+class SearchPlayList: public PlayList {
     private:
         char* prefilter;
                 
@@ -16,7 +23,7 @@ class SearchPlayList: public DisplayListImpl {
 };
 
 
-class M3uPlayList: public DisplayListImpl {
+class M3uPlayList: public PlayList {
     private:
         char*       m3u;
         MasterList* rootList;
@@ -26,6 +33,11 @@ class M3uPlayList: public DisplayListImpl {
         virtual ~M3uPlayList();
         
         virtual void downloadFunction() throw(ConnectionException);
+        virtual HWND getHwnd()    const;
+        virtual void setHwnd(HWND hwnd);
+        virtual int  isAborted()  const;
+        virtual void abort()      const;
+
 };
 
 
@@ -41,9 +53,10 @@ class PlayLists {
 
         virtual void         setHwnd(HWND)          { PlayLists::hwnd = hwnd;                 }
         virtual void         download() throw(ConnectionException);
-        virtual void         purge();
+        virtual void         clear();
         virtual int          getSize()              { return playLists->GetSize();            }
-        virtual DisplayList* getDisplayList(int x)  { return (DisplayList*)playLists->Get(x); }
+        virtual PlayList*    getPlayList(int);
+        virtual PlayList*    getPlayList(const char*);
 };
 
 

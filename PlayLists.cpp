@@ -11,8 +11,8 @@ using namespace std;
 #include "Trace.h"
 
 
-SearchPlayList::SearchPlayList(const char* name, const char* descrip, const char* prefilter, DisplayList& rootList): 
-    DisplayListImpl(name, rootList) {
+SearchPlayList::SearchPlayList(const char* name, const char* desc, const char* prefilter, DisplayList& displayList): 
+    PlayList(name, desc, displayList) {
     TRACE("SearchPlayList::SearchPlayList");
     SearchPlayList::prefilter = strdup(prefilter);
 }
@@ -28,22 +28,25 @@ unsigned SearchPlayList::filterFunction(const char* filter) {
     TRACE("SearchPlayList::filterFunction");
     char newfilter[512];
     sprintf(newfilter, "\"%s\" %s", prefilter, filter);
-    return DisplayListImpl::filterFunction(newfilter);
+    return PlayList::filterFunction(newfilter);
 }
 
 
 
-M3uPlayList::M3uPlayList(const char* name, const char* descrip, const char* m3u, DisplayList& displayList):
-    DisplayListImpl(name, displayList) {
+M3uPlayList::M3uPlayList(const char* name, const char* desc, const char* m3u, DisplayList& displayList):
+    PlayList(name, desc, displayList) {
     TRACE("M3uPlayList::M3uPlayList");
     M3uPlayList::m3u      = strdup(m3u);
-    M3uPlayList::rootList = displayList.referenceMasterList();
+    M3uPlayList::rootList = masterList;
+    PlayList::masterList  = new MasterList(name);
 }
 
 
 M3uPlayList::~M3uPlayList() {
     TRACE("M3uPlayList::~M3uPlayList");
+    delete masterList; // We should be the only one
     delete m3u;
+    masterList = rootList;
 }
 
 
@@ -55,7 +58,6 @@ void M3uPlayList::downloadFunction() throw(ConnectionException) {
     SongList* newSongs = new SongList();
     string    m3uUrl   = configuration.getURL(m3u);
     
-    setStatusMessage(getHwnd(), "[Connecting...]");
     HTTPGet httpGet(m3uUrl, configuration.getUser(), configuration.getPassword());
     httpGet.addHeader("User-Agent: MediaCaster (Winamp)");
     httpGet.addHeader("Accept:     text/*");
@@ -70,16 +72,21 @@ void M3uPlayList::downloadFunction() throw(ConnectionException) {
         //   <path>  <-- This is all we care about
         //   ...
         
-        char* buf;
-        httpGet.readLine(buf);
-        if (!buf || strcmp(buf,"#EXTM3U")!=0) throw ConnectionException("Improper M3U file");
 
-        while ( !isAborted() && httpGet.readLine(buf) ) {
-            if (strncmp(buf,"#EXTINF:",8)!=0) throw ConnectionException("Corrupt M3U file");
+        char* buf;
+                
+        httpGet.readLine(buf);                    
+        if (!buf || strcmp(buf,"#EXTM3U")!=0) throw ConnectionException("Improper M3U file");
+        delete buf;
+        
+        while ( !isAborted() && httpGet.readLine(buf) ) {            
+            if (strncmp(buf,"#EXTINF:",8)!=0) throw ConnectionException("Improper M3U file");
+            delete buf;
             
             httpGet.readLine(buf);
-//          Song* song = masterList->getSong(buf);
-Song* song = NULL;
+            if (!buf) throw ConnectionException("Improper M3U file");
+            
+            Song* song = rootList->getSong(buf);
             if (song) {
                 LOGGER("Adding", song->file.c_str());
                 song->addReference();
@@ -87,28 +94,55 @@ Song* song = NULL;
             } else {
                 LOGGER("Missing", buf);
             }
+                        
+            delete buf;
         }
 
     } catch (HTTPAuthenticationException& ex) {
         // Have to do it this way or this exception isn't rethrown correctly
         delete newSongs;
-//      masterList->songList->clear();
+        masterList->clear();
         RETHROW(ex);
 
     } catch (ConnectionException& ex) {
         delete newSongs;
-//      masterList->purge();
+        masterList->clear();
         RETHROW(ex);
     }
 
     if (isAborted()) {
         delete newSongs;
     } else {
- //     delete masterList->masterList;
- //     masterList->masterList = newSongs;
+        masterList->songList->purge();
+        delete masterList->songList;
+        masterList->songList = newSongs;
     }
     
-//  LOGGER("size", masterList->getSize());
+    LOGGER("size", masterList->getSize());
+}
+
+
+void M3uPlayList::abort() const {
+    TRACE("M3uPlayList::abort");
+    rootList->abort();
+}
+
+
+int M3uPlayList::isAborted() const {
+//  TRACE("M3uPlayList::abort");
+    return rootList->isAborted();
+}
+
+
+HWND M3uPlayList::getHwnd() const {
+//  TRACE("M3uPlayList::getHwnd");
+    return rootList->getHwnd();
+}
+
+
+void M3uPlayList::setHwnd(HWND hwnd) {
+    TRACE("M3uPlayList::setHwnd");
+    rootList->setHwnd(hwnd);
 }
 
 
@@ -121,19 +155,19 @@ PlayLists::PlayLists(DisplayList& displayList): rootList(displayList) {
 
 PlayLists::~PlayLists() {
     TRACE("PlayLists::~PlayLists");
-    PlayLists::purge();
+    PlayLists::clear();
     delete playLists;
 }
 
 
-void PlayLists::purge() {
-    TRACE("PlayLists::purge");
+void PlayLists::clear() {
+    TRACE("PlayLists::clear");
     if (playLists) {
         int i=playLists->GetSize();
         LOGGER("size",i);
         while (i>0) {
-            DisplayList* displayList = getDisplayList(--i);
-            displayList->deleteReference();
+            PlayList* playList = getPlayList(--i);
+            playList->deleteReference();
             playLists->Del(i);
         }
     }
@@ -158,24 +192,31 @@ void PlayLists::download() throw(ConnectionException) {
         char* buf;
         int   warned = 0;
         while ( httpGet.readLine(buf) ) {
+            
             char* title = strtok(buf,  "|");
             char* type  = strtok(NULL, "|");
             char* data  = strtok(NULL, "|");
             char* desc  = strtok(NULL, "|");            
-                        
-            DisplayList* list = NULL;
+                 
+            PlayList* playList = getPlayList(title);
             if (strcmp("search",type)==0) {
-                list = new SearchPlayList(title, desc, data, rootList);
+                if (!playList) playList = new SearchPlayList(title, desc, data, rootList);
+                else           playList->addReference();
                 
             } else if (strcmp("m3u",type)==0) {
-                list = new M3uPlayList(title, desc, data, rootList);
-                list->download();
-    
+                if (!playList) playList = new M3uPlayList(title, desc, data, rootList);
+                else           playList->addReference();
+                playList->download();
+                
+            } else if (type[0]=='#') {
+                // Commented out, ignored
+                
             } else {
-                newFeatureBox(hwnd, "An unknown playlist type was found.", warned);
+                newFeatureBox(hwnd, "An unknown playlist type was found.", warned);    
+                playList = NULL;
             }
             
-            newLists->Add(list);
+            if (playList) newLists->Add(playList);                
             delete buf;
         }
                 
@@ -193,6 +234,27 @@ void PlayLists::download() throw(ConnectionException) {
         }
     }
     
+    clear();
     delete playLists;
     playLists = newLists;
+}
+
+
+PlayList* PlayLists::getPlayList(int ndx) {
+    TRACE("PlayLists::getPlayList");
+    
+    return (PlayList*)playLists->Get(ndx);
+}
+
+
+PlayList* PlayLists::getPlayList(const char* name) {
+    TRACE("PlayLists::getPlayList");
+    
+    for (int i=0; i<playLists->GetSize(); i++) {
+        PlayList* playList = (PlayList*)playLists->Get(i);
+        if (strcmp(playList->getName(), name)==0) {
+            return playList;
+        }
+    }
+    return NULL;
 }
