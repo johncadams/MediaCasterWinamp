@@ -195,6 +195,12 @@ int CasterLibrary::isUpgradeAvailable() {
 }
 
 
+const char* CasterLibrary::getUpgradeAvailableMessage() {
+    TRACE("CasterLibrary::getUpgradeAvailableMessage");
+    return upgrade->getIsAvailableMessage();
+}
+
+
 void CasterLibrary::downloadUpgrade() {
     TRACE("CasterLibrary::downloadUpgrade");
     try {

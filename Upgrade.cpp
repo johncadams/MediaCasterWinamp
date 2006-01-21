@@ -13,10 +13,17 @@ using namespace std;
 #include "MediaCaster.h"
 
 
+Upgrade::Upgrade() {
+    TRACE("Upgrade::Upgrade");
+    
+    connectionProblem = 0;
+    installerUrl      = configuration.getURL( configuration.getInstallerPath() );
+}
+
+
 void Upgrade::downloadFunction() throw (ConnectionException) {
     TRACE("Upgrade::downloadFunction");
     
-    string  installerUrl = configuration.getURL( configuration.getInstallerPath() );      
     HTTPGet httpGet(installerUrl, configuration.getUser(), configuration.getPassword());
     char    bytes[1024];
     int     cnt;
@@ -31,7 +38,7 @@ void Upgrade::downloadFunction() throw (ConnectionException) {
         while(cnt=httpGet.read(bytes, sizeof(bytes))) {
             total += cnt;
             char status[256];
-            sprintf(status, "[Connected] Downloading installer: %3d%%", int( float(total*100./httpGet.contentLen())) );
+            sprintf(status, INSTALLER_DOWNLOAD, int( float(total*100./httpGet.contentLen())) );
             setStatusMessage(hwnd, status);
             fwrite(bytes, sizeof(char), cnt, fd);
         }
@@ -81,9 +88,9 @@ void Upgrade::download() throw(ConnectionException) {
 int Upgrade::isAvailable() throw(ConnectionException) {
     TRACE("Upgrade::isAvailable");
     
-    try {
-        string installerUrl = configuration.getURL( configuration.getInstallerPath() );
-        
+    if (connectionProblem) return 0;
+    
+    try {                
 //      Don't output status message since this gets called from config dialog too
 //      setStatusMessage(hwnd, "[Connecting...]");
         HTTPInfo httpInfo(installerUrl, configuration.getUser(), configuration.getPassword());
@@ -92,7 +99,7 @@ int Upgrade::isAvailable() throw(ConnectionException) {
         LOGGER("Local ", configuration.getBuildDate());
         LOGGER("Remote", httpInfo.lastModified());
         if (httpInfo.lastModified()>configuration.getBuildDate()) {
-            setStatusMessage(hwnd, "An upgrade is available");
+            setStatusMessage(hwnd, "Media Caster upgrade available");
             return true;
         } else {
 //          setStatusMessage(hwnd, "Your installation is current");
@@ -105,12 +112,30 @@ int Upgrade::isAvailable() throw(ConnectionException) {
         
     } catch (HTTPException& ex) {
         if (ex.getErrorCode() == 404) {
-            IGNOREX(ex, "File not required");
+            CATCH(ex);
+            connectionProblem = 1;
+            string details = string("The following URL failed: ") +installerUrl;
+            connectionProblemBox(hwnd, details.c_str());
         } else {
             throw ex;
         }
     }
     return false;
+}
+
+
+const char* Upgrade::getIsAvailableMessage() {
+    TRACE("Upgrade::getUpgradeAvailableMessage");
+    
+    if (connectionProblem) {
+        return "Connection error, status unavailable";        
+        
+    } else if (isAvailable()) {
+        return "Media Caster upgrade available";
+        
+    } else {
+        return "Media Caster is up-to-date";
+    }
 }
 
 

@@ -160,7 +160,7 @@ void aboutBox(HWND hwnd) {
 
 void connectionProblemBox(HWND hwnd, const char* reason) {
     TRACE("connectionProblemBox");
-    string msg = "There was a problem connecting to the server";
+    string msg = "There was a problem connecting to the Media Caster server";
     msg += string("\n \nCause: ") +reason;
     
     ::setStatusMessage(hwnd, "Connection FAILURE");
@@ -287,13 +287,8 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
             SendDlgItemMessage(configDlg, DLG_PASSWORD, EM_SETPASSWORDCHAR, '*', 0);
             
             HWND button = GetDlgItem(configDlg, DLG_UPGRADE);
-            if (library->isUpgradeAvailable()) {
-                SetDlgItemText(configDlg, DLG_UPDTEXT, "An upgrade is available");
-                EnableWindow(button, 1);
-            } else {
-                SetDlgItemText(configDlg, DLG_UPDTEXT, "Your installation is current");
-                EnableWindow(button, 0);
-            }
+            SetDlgItemText(configDlg, DLG_UPDTEXT, library->getUpgradeAvailableMessage());
+            EnableWindow(button, library->isUpgradeAvailable());            
             
             return 0;
         }
