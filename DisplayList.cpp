@@ -174,6 +174,7 @@ DisplayListImpl::DisplayListImpl(int treeId) {
     DisplayListImpl::masterList  = new MasterList(name);
     DisplayListImpl::songList    = new SongList();
     DisplayListImpl::treeId      = treeId;
+    DisplayListImpl::parentId    = 0;
     DisplayListImpl::refCount    = 1;
 }
 
@@ -188,13 +189,16 @@ DisplayListImpl::DisplayListImpl(const char* name, DisplayList& clone) {
     // add the item to the tree
     mlAddTreeItemStruct mla = {clone.getTreeId(),(char*)name,1,};
     SendMessage(plugin.hwndLibraryParent, WM_ML_IPC, (WPARAM)&mla, ML_IPC_ADDTREEITEM);
-    treeId = mla.this_id;
+    treeId   = mla.this_id;
+    parentId = clone.getTreeId();
 }
 
 
 DisplayListImpl::~DisplayListImpl() {
     TRACE("DisplayListImpl::~DisplayListImpl");
+    
     SendMessage(plugin.hwndLibraryParent, WM_ML_IPC, treeId, ML_IPC_DELTREEITEM);
+    
     delete songList;
     masterList->deleteReference();
     delete name;

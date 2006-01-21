@@ -76,6 +76,7 @@ class DisplayListImpl: public DisplayList {
         MasterList*         masterList;
         SongList*           songList;
         int                 treeId;
+        int                 parentId;
         int                 refCount;
                 
     protected:
