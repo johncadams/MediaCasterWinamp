@@ -18,7 +18,7 @@ class Upgrade {
           
         void        download()      throw(ConnectionException);
         int         isAvailable()   throw(ConnectionException);
-        const char* getIsAvailableMessage();
+        const char* getIsAvailableStatus();
         void        setHwnd(HWND);
 };
 

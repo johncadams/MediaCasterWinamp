@@ -7,6 +7,7 @@
 #include "HTTPGet.h"
 #include "Process.h"
 #include "Trace.h"
+#include "Messages.h"
 
 
 static void parseQuickSearch(char* out, const char* in) {
@@ -111,7 +112,7 @@ void MasterList::downloadFunction() throw(ConnectionException)  {
     SongList* newSongs      = new SongList();
     string    masterListUrl = configuration.getURL( configuration.getLibraryPath() );
     
-    setStatusMessage(hwnd, "[Connecting...]");
+    setStatusMessage(hwnd, CONNECTING);
     HTTPGet httpGet(masterListUrl, configuration.getUser(), configuration.getPassword());
     httpGet.addHeader("User-Agent: MediaCaster (Winamp)");
     httpGet.addHeader("Accept:     text/*");
@@ -137,7 +138,7 @@ void MasterList::downloadFunction() throw(ConnectionException)  {
             
             char status[256];
             total += cnt+1;
-            sprintf(status, "[Connected] Retrieving list: %3d%%", int( float(total*100./httpGet.contentLen())) );
+            sprintf(status, DISPLIST_DOWNLOAD, int( float(total*100./httpGet.contentLen())) );
             setStatusMessage(hwnd, status);
             delete buf;
         }
@@ -347,8 +348,8 @@ void DisplayListImpl::filter() {
     int  hours = count/3600;
     int  mins  =(count/60)%60;
     int  secs  = count%60;
-    if (days==0) wsprintf(status,"%d items [%d:%02d:%02d]",         songList->getSize(),     hours,mins,secs);
-    else         wsprintf(status,"%d items [%d days+%d:%02d:%02d]", songList->getSize(),days,hours,mins,secs);
+    if (days==0) wsprintf(status, NUMITEMS_NODAYS, songList->getSize(),     hours,mins,secs);
+    else         wsprintf(status, NUMITEMS_WDAYS,  songList->getSize(),days,hours,mins,secs);
     ::setStatusMessage(getHwnd(), status);
 }
 

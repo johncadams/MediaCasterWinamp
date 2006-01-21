@@ -1,10 +1,11 @@
 #include "Trace.h"
 #include "MediaCaster.h"
+#include "Messages.h"
 
 
 void Tracer::print(const char* marker, const char* message) {
     if (!tracerFd) {
-        MessageBox(plugin.hwndLibraryParent, "Error opening log file", "Error", MB_OK);
+        MessageBox(plugin.hwndLibraryParent, ERROR_OPENING_LOGFILE, "Error", MB_OK);
         exit(0);    
     }
     for (int i=0; i<tracerDepth; i++) fprintf(tracerFd, " ");            

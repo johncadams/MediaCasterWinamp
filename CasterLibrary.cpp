@@ -195,9 +195,9 @@ int CasterLibrary::isUpgradeAvailable() {
 }
 
 
-const char* CasterLibrary::getUpgradeAvailableMessage() {
-    TRACE("CasterLibrary::getUpgradeAvailableMessage");
-    return upgrade->getIsAvailableMessage();
+const char* CasterLibrary::getUpgradeAvailableStatus() {
+    TRACE("CasterLibrary::getUpgradeAvailableStatus");
+    return upgrade->getIsAvailableStatus();
 }
 
 

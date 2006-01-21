@@ -39,7 +39,7 @@ class CasterLibrary {
        virtual int         checkId(int);
        virtual void        drop(POINT) const;
        virtual int         isUpgradeAvailable();
-       virtual const char* getUpgradeAvailableMessage();
+       virtual const char* getUpgradeAvailableStatus();
        virtual void        downloadUpgrade();
 };
 

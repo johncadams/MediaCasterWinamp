@@ -9,6 +9,7 @@ using namespace std;
 #include "HTTPGet.h"
 #include "MediaCaster.h"
 #include "Trace.h"
+#include "Messages.h"
 
 
 SearchPlayList::SearchPlayList(const char* name, const char* desc, const char* prefilter, DisplayList& displayList): 
@@ -212,7 +213,7 @@ void PlayLists::download() throw(ConnectionException) {
                 // Commented out, ignored
                 
             } else {
-                newFeatureBox(hwnd, "An unknown playlist type was found.", warned);    
+                newFeatureBox(hwnd, UNKNOWN_PLAYLIST_TYPE, warned);    
                 playList = NULL;
             }
             

@@ -39,6 +39,7 @@ using namespace std;
 
 #define TRACE_GLOBALS
 #include "Trace.h"
+#include "Messages.h"
 
 
 // Timer IDs
@@ -141,9 +142,7 @@ static int YesNoBox(HWND hwnd, const char* message, const char* title) {
 static int downloadUpgradeIfAvailableDialog(HWND hwnd) {
     TRACE("downloadUpgradeIfAvailableDialog");
     if (library->isUpgradeAvailable()) {
-        string mess = string("A newer version of ") +PLUGIN_NAME +" is available";
-        mess += "\n \nWould you like to upgrade?\n";
-        if (YesNoBox(hwnd, mess.c_str(), "Upgrade")) {
+        if (YesNoBox(hwnd, UPGRADE_AVAIL_MSGBOX, "Upgrade")) {
             library->downloadUpgrade();
             return true;
         }
@@ -154,17 +153,18 @@ static int downloadUpgradeIfAvailableDialog(HWND hwnd) {
 
 void aboutBox(HWND hwnd) {
     TRACE("aboutBox");
-    MsgBox(hwnd, PLUGIN_FULLNAME"\n \n"COPYRIGHT, "About");
+    MsgBox(hwnd, COPYRIGHT_MSGBOX, "About");
 }
 
 
 void connectionProblemBox(HWND hwnd, const char* reason) {
     TRACE("connectionProblemBox");
-    string msg = "There was a problem connecting to the Media Caster server";
-    msg += string("\n \nCause: ") +reason;
     
-    ::setStatusMessage(hwnd, "Connection FAILURE");
-    ::MsgBox(hwnd, msg.c_str(), "Connection Error");
+    char msg[1024];
+    sprintf(msg, CONN_PROBLEM_MSGBOX, reason);
+    
+    ::setStatusMessage(hwnd, CONN_PROBLEM_STATUS1);
+    ::MsgBox(hwnd, msg, "Error");
     ::configDialog(hwnd);
 }
 
@@ -172,13 +172,10 @@ void connectionProblemBox(HWND hwnd, const char* reason) {
 void newFeatureBox(HWND hwnd, const char* reason, int& warned) {
     TRACE("newFeatureBox");
     if (!warned && !downloadUpgradeIfAvailableDialog(hwnd)) {
-        string msg = string(reason) +
-                     "\n \n"                                    \
-                     "Contact DigitalStreams,\n"                \
-                     "a wholly owned subsidary of Smada Nhoj Industries.";
+        string msg = string(reason) +"\n \n" CONTACT_US;
                  
         warned = 1;
-        ::MsgBox(hwnd, msg.c_str(), "Feature Not Available Error");
+        ::MsgBox(hwnd, msg.c_str(), "Error");
     }
 }
 
@@ -243,16 +240,13 @@ int init() {
     
     // see if we have a pending error from a previous installer run
     if (configuration.getMessage()[0]) {
-        string url = configuration.getURL( configuration.getInstallerPath() );
-        string msg = string("The auto-installer failed, you will need to run the installer manully:\n")+
-                     "   Cause: "+configuration.getMessage() +"\n\n"+
-                     "Workaround:\n"+
-                     "   1) Terminate Winamp\n"+
-                     "   2) Download the installer ("+url+")\n"+
-                     "   3) Execute the installer\n"+
-                     "   4) Re-enable Auto-Update (Config dialog)";
-               
-        MessageBox(plugin.hwndLibraryParent, msg.c_str(), "Error", MB_OK);
+        
+        char msg[4096];
+        sprintf(msg, INSTALLER_INSTRUCTS,
+                     configuration.getMessage(), 
+                     configuration.getURL( configuration.getInstallerPath() ).c_str());
+
+        MessageBox(plugin.hwndLibraryParent, msg, "Error", MB_OK);
         configuration.resetMessage();
         configuration.setAutoUpdate(0);
     }
@@ -287,7 +281,7 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
             SendDlgItemMessage(configDlg, DLG_PASSWORD, EM_SETPASSWORDCHAR, '*', 0);
             
             HWND button = GetDlgItem(configDlg, DLG_UPGRADE);
-            SetDlgItemText(configDlg, DLG_UPDTEXT, library->getUpgradeAvailableMessage());
+            SetDlgItemText(configDlg, DLG_UPDTEXT, library->getUpgradeAvailableStatus());
             EnableWindow(button, library->isUpgradeAvailable());            
             
             return 0;

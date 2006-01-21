@@ -6,12 +6,8 @@
 #include "gen_ml/listview.h"
 #include "Configuration.h"
 
-
 #define PLUGIN_NAME         "Media Caster"
 #define PLUGIN_FULLNAME     PLUGIN_NAME" v"MC_VERSION
-#define COPYRIGHT           "Brought to you by the fine folks at DigitalStreams,\n"  \
-                            "a wholly owned subsidary of Smada Nhoj Industries.\n"   \
-                            "Copyright 2005, all rights reserved"
 
 
 // columns in our big treeview

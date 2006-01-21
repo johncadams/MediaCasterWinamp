@@ -11,6 +11,7 @@ using namespace std;
 #include "HTTPGet.h"
 #include "Process.h"
 #include "MediaCaster.h"
+#include "Messages.h"
 
 
 Upgrade::Upgrade() {
@@ -29,7 +30,7 @@ void Upgrade::downloadFunction() throw (ConnectionException) {
     int     cnt;
     int     total = 0;
     
-    setStatusMessage(hwnd, "[Connecting...]");    
+    setStatusMessage(hwnd, CONNECTING);    
     httpGet.connect();    
     
     string path = string(tempnam("", "installer_MediaCaster")) + ".exe";
@@ -99,7 +100,7 @@ int Upgrade::isAvailable() throw(ConnectionException) {
         LOGGER("Local ", configuration.getBuildDate());
         LOGGER("Remote", httpInfo.lastModified());
         if (httpInfo.lastModified()>configuration.getBuildDate()) {
-            setStatusMessage(hwnd, "Media Caster upgrade available");
+            setStatusMessage(hwnd, UPGRADE_AVAIL_STATUS);
             return true;
         } else {
 //          setStatusMessage(hwnd, "Your installation is current");
@@ -114,8 +115,7 @@ int Upgrade::isAvailable() throw(ConnectionException) {
         if (ex.getErrorCode() == 404) {
             CATCH(ex);
             connectionProblem = 1;
-            string details = string("The following URL failed: ") +installerUrl;
-            connectionProblemBox(hwnd, details.c_str());
+            connectionProblemBox(hwnd, installerUrl.c_str());
         } else {
             throw ex;
         }
@@ -124,17 +124,17 @@ int Upgrade::isAvailable() throw(ConnectionException) {
 }
 
 
-const char* Upgrade::getIsAvailableMessage() {
+const char* Upgrade::getIsAvailableStatus() {
     TRACE("Upgrade::getUpgradeAvailableMessage");
     
     if (connectionProblem) {
-        return "Connection error, status unavailable";        
+        return CONN_PROBLEM_STATUS2;        
         
     } else if (isAvailable()) {
-        return "Media Caster upgrade available";
+        return UPGRADE_AVAIL_STATUS;
         
     } else {
-        return "Media Caster is up-to-date";
+        return UPTODATE_STATUS;
     }
 }
 
