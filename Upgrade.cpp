@@ -93,9 +93,9 @@ int Upgrade::isAvailable() throw(ConnectionException) {
     
     try {                
 //      Don't output status message since this gets called from config dialog too
-//      setStatusMessage(hwnd, "[Connecting...]");
+//      setStatusMessage(hwnd, CONNECTING);
         HTTPInfo httpInfo(installerUrl, configuration.getUser(), configuration.getPassword());
-//      setStatusMessage(hwnd, "[Connected] Checking for updates");
+//      setStatusMessage(hwnd, CONNECTED_UPDATING);
 
         LOGGER("Local ", configuration.getBuildDate());
         LOGGER("Remote", httpInfo.lastModified());
@@ -103,7 +103,7 @@ int Upgrade::isAvailable() throw(ConnectionException) {
             setStatusMessage(hwnd, UPGRADE_AVAIL_STATUS);
             return true;
         } else {
-//          setStatusMessage(hwnd, "Your installation is current");
+//          setStatusMessage(hwnd, UPTODATE_STATUS);
             return false;
         }
         

@@ -150,7 +150,8 @@ void M3uPlayList::setHwnd(HWND hwnd) {
 
 PlayLists::PlayLists(DisplayList& displayList): rootList(displayList) {
     TRACE("PlayLists::PlayLists");
-    PlayLists::playLists  = new C_ItemList();
+    PlayLists::playLists         = new C_ItemList();
+    PlayLists::connectionProblem = 0;
 }
 
 
@@ -178,7 +179,7 @@ void PlayLists::clear() {
 void PlayLists::download() throw(ConnectionException) {
     TRACE("PlayLists::download");
     
-    if (configuration.getHost()[0]=='\0') return;
+    if (connectionProblem) return;
     
     C_ItemList* newLists = new C_ItemList();
         
@@ -229,7 +230,9 @@ void PlayLists::download() throw(ConnectionException) {
     } catch (HTTPException& ex) {
         delete newLists;
         if (ex.getErrorCode() == 404) {
-            IGNOREX(ex, "File not required");
+            CATCH(ex);
+            connectionProblem = 1;
+            connectionProblemBox(hwnd, playlistUrl.c_str());
         } else {
             throw ex;
         }

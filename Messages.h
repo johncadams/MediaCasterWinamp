@@ -29,6 +29,7 @@
         
 /* Used in the status bar */
 #define CONNECTING              "[Connecting...]"
+#define CONNECTED_UPDATING      "[Connected] Checking for updates"
 #define DISPLIST_DOWNLOAD       "[Connected] Retrieving list: %3d%%"
 #define INSTALLER_DOWNLOAD      "[Connected] Downloading installer: %3d%%"
 

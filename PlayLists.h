@@ -46,6 +46,7 @@ class PlayLists {
         C_ItemList*  playLists;
         DisplayList& rootList;
         HWND         hwnd;
+        int          connectionProblem;
         
     public:
         PlayLists(DisplayList&);        
