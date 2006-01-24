@@ -87,7 +87,7 @@ SongList::SongList() {
 
 SongList::~SongList() {
     TRACE("SongList::SongList");
-    SongList::purge();
+    SongList::clear();
     delete songList;
 }
 
@@ -114,8 +114,8 @@ void SongList::addSong(Song* song) {
 }
 
 
-void SongList::purge() {
-    TRACE("SongList::purge");
+void SongList::clear() {
+    TRACE("SongList::clear");
     if (songList) {
         int i=songList->GetSize();
         LOGGER("size",i);

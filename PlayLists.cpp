@@ -114,7 +114,7 @@ void M3uPlayList::downloadFunction() throw(ConnectionException) {
     if (isAborted()) {
         delete newSongs;
     } else {
-        masterList->songList->purge();
+        masterList->songList->clear();
         delete masterList->songList;
         masterList->songList = newSongs;
     }

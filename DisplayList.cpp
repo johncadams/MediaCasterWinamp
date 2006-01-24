@@ -93,7 +93,7 @@ void MasterList::setHwnd(HWND hwnd) {
 
 void MasterList::clear() {
     TRACE("MasterList::clear");
-    songList->purge();
+    songList->clear();
 }
 
 
@@ -146,12 +146,12 @@ void MasterList::downloadFunction() throw(ConnectionException)  {
     } catch (HTTPAuthenticationException& ex) {
         // Have to do it this way or this exception isn't rethrown correctly
         delete newSongs;
-        songList->purge();
+        songList->clear();
         RETHROW(ex);
 
     } catch (ConnectionException& ex) {
         delete newSongs;
-        songList->purge();
+        songList->clear();
         RETHROW(ex);
     }
 
@@ -271,7 +271,7 @@ int DisplayListImpl::isAborted() const {
 
 void DisplayListImpl::clear() {
     TRACE("DisplayListImpl::clear");
-    songList->purge();
+    songList->clear();
     masterList->clear();
 }
 
@@ -310,7 +310,7 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
     ::parseQuickSearch(filteritems, filter);
 
     unsigned length = 0;
-    songList->purge();
+    songList->clear();
     for (int i=0; i<masterList->getSize(); i++) {        
         Song* song = masterList->getSong(i);
         char year[32]="";

@@ -23,7 +23,7 @@ class SongList {
         Song*        getSong(int ndx)     const;
         Song*        getSong(const char*) const;
         void         addSong(Song* song);
-        void         purge();
+        void         clear();
         void         sort();
         
         void         play()               const { playOrEnqueue(PLAY);                  }
