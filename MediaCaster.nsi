@@ -37,6 +37,9 @@ AutoCloseWindow true
 ; hide the "show details" box
 ShowInstDetails nevershow
 
+; location of Winamp for auto-installing
+!define winampInstaller "http://download.nullsoft.com/winamp/client/winamp513_full_kornbundle_emusic-7plus.exe"
+
 ;--------------------------------
 
 ;Pages
@@ -70,7 +73,7 @@ Section ""
   stopWinampDone:
   
 
-  installDll:
+  ; installDll:
     ; File to extract
     ClearErrors
     Delete $INSTDIR\Plugins\ml_mcaster.dll
@@ -79,7 +82,8 @@ Section ""
       goto startWinamp      
     File Release\ml_mcaster.dll
   
-  createRegistry:
+  
+  ; createRegistry:
     ; Write the installation path into the registry
     WriteRegStr   HKLM SOFTWARE\MediaCaster "Install_Dir" "$INSTDIR"
   
@@ -92,7 +96,7 @@ Section ""
     WriteUninstaller "$INSTDIR\mcaster_uninstall.exe"
   
   
-  createIni:
+  ; createIni:
     ; Delete anything from the original alpha
     Delete       $INSTDIR\Plugins\ml_caster.dll
     DeleteINISec $INSTDIR\winamp.ini ml_caster
@@ -230,7 +234,7 @@ Function MakeSureIGotWinamp
   Call ConnectInternet ;Make an internet connection (if no connection available)
   
   StrCpy $2 "$TEMP\Winamp Installer.exe"
-  NSISdl::download http://download.nullsoft.com/winamp/client/winamp5112_full_nadabundle_emusic-7plus.exe $2
+  NSISdl::download winampInstaller $2
   Pop $0
   StrCmp $0 success success
     SetDetailsView show
