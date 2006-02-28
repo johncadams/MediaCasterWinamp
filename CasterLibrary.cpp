@@ -140,7 +140,7 @@ void CasterLibrary::downloadFunction() {
 
     ListView_SetItemCount(listView.getwnd(),0);     
     try {
-        if (configuration.isAutoUpdate()) upgrade->download();     
+        if (configuration.isAutoUpdate()) upgrade->download();
         displayList->download();
         playLists->download();
         ::setConnectionSuccess();
@@ -150,11 +150,11 @@ void CasterLibrary::downloadFunction() {
         ::setConnectionFailed();        
         ::authDialog(hwnd);
         
-     } catch (ConnectionException& ex) {
+    } catch (ConnectionException& ex) {
         CATCH(ex);
         ::setConnectionFailed();
         ::connectionProblemBox(hwnd, ex.getError());        
-     }
+    }
      
 #ifdef NO_THREADS
     ::grayRefreshButton(hwnd, false);
@@ -173,7 +173,6 @@ void CasterLibrary::display() {
 int CasterLibrary::checkId(int treeId) {
     TRACE("CasterLibrary::checkId");    
     if (displayList->getTreeId() == treeId) return true;
-    
     for (int x=0; x<playLists->getSize(); x++) {
         PlayList* playList = playLists->getPlayList(x);
         if (playList->getTreeId() == treeId) return true;
@@ -187,7 +186,7 @@ int CasterLibrary::isUpgradeAvailable() {
     TRACE("CasterLibrary::isUpgradeAvailable");
     try {
         return upgrade->isAvailable();
-    } catch (ConnectionException ex) {
+    } catch (ConnectionException& ex) {
         IGNOREX(ex, "File not required");
     }
     

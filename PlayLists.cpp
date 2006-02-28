@@ -148,38 +148,25 @@ void M3uPlayList::setHwnd(HWND hwnd) {
 
 
 
-PlayLists::PlayLists(DisplayList& displayList): rootList(displayList) {
+PlayLists::PlayLists(DisplayList& displayList) : rootList(displayList)  {
     TRACE("PlayLists::PlayLists");
-    PlayLists::playLists         = new C_ItemList();
-    PlayLists::connectionProblem = 0;
+    PlayLists::playLists = new C_ItemList();
+    displayList.addReference();
 }
 
 
 PlayLists::~PlayLists() {
     TRACE("PlayLists::~PlayLists");
+    rootList.deleteReference();
     PlayLists::clear();
     delete playLists;
-}
-
-
-void PlayLists::clear() {
-    TRACE("PlayLists::clear");
-    if (playLists) {
-        int i=playLists->GetSize();
-        LOGGER("size",i);
-        while (i>0) {
-            PlayList* playList = getPlayList(--i);
-            playList->deleteReference();
-            playLists->Del(i);
-        }
-    }
 }
 
 
 void PlayLists::download() throw(ConnectionException) {
     TRACE("PlayLists::download");
     
-    if (connectionProblem) return;
+    if (configuration.getHost()[0]=='\0') return;
     
     C_ItemList* newLists = new C_ItemList();
         
@@ -195,19 +182,27 @@ void PlayLists::download() throw(ConnectionException) {
         int   warned = 0;
         while ( httpGet.readLine(buf) ) {
             
-            char* title = strtok(buf,  "|");
-            char* type  = strtok(NULL, "|");
-            char* data  = strtok(NULL, "|");
-            char* desc  = strtok(NULL, "|");            
+            const char* title = strtok(buf,  "|");
+            const char* type  = strtok(NULL, "|");
+            const char* data  = strtok(NULL, "|");
+            const char* desc  = strtok(NULL, "|");            
                  
-            PlayList* playList = getPlayList(title);
+            PlayList* playList = NULL;
             if (strcmp("search",type)==0) {
-                if (!playList) playList = new SearchPlayList(title, desc, data, rootList);
-                else           playList->addReference();
+                if (!playList) {
+                	playList = new SearchPlayList(title, desc, data, rootList);
+                } else {
+                	playList = getPlayList(title);
+                	playList->addReference();
+                }
                 
             } else if (strcmp("m3u",type)==0) {
-                if (!playList) playList = new M3uPlayList(title, desc, data, rootList);
-                else           playList->addReference();
+                if (!playList) {
+                	playList = new M3uPlayList(title, desc, data, rootList);
+                } else {
+                	playList = getPlayList(title);
+                	playList->addReference();
+                }
                 playList->download();
                 
             } else if (type[0]=='#') {
@@ -215,26 +210,26 @@ void PlayLists::download() throw(ConnectionException) {
                 
             } else {
                 newFeatureBox(hwnd, UNKNOWN_PLAYLIST_TYPE, warned);    
-                playList = NULL;
             }
             
-            if (playList) newLists->Add(playList);                
+            if (playList) {
+            	LOGGER("Adding playlist", title);
+            	newLists->Add(playList);                
+            }
             delete buf;
         }
                 
     } catch (HTTPAuthenticationException& ex) {
         // If we don't catch this this way it gets reported as HTTPException
         delete newLists;
-        throw ex;
+        RETHROW(ex);
         
     } catch (HTTPException& ex) {
         delete newLists;
         if (ex.getErrorCode() == 404) {
-            CATCH(ex);
-            connectionProblem = 1;
-            connectionProblemBox(hwnd, playlistUrl.c_str());
+            IGNOREX(ex, "File not required");
         } else {
-            throw ex;
+            RETHROW(ex);
         }
     }
     
@@ -245,15 +240,13 @@ void PlayLists::download() throw(ConnectionException) {
 
 
 PlayList* PlayLists::getPlayList(int ndx) {
-    TRACE("PlayLists::getPlayList");
-    
+    TRACE("PlayLists::getPlayList");    
     return (PlayList*)playLists->Get(ndx);
 }
 
 
 PlayList* PlayLists::getPlayList(const char* name) {
     TRACE("PlayLists::getPlayList");
-    
     for (int i=0; i<playLists->GetSize(); i++) {
         PlayList* playList = (PlayList*)playLists->Get(i);
         if (strcmp(playList->getName(), name)==0) {
@@ -261,4 +254,18 @@ PlayList* PlayLists::getPlayList(const char* name) {
         }
     }
     return NULL;
+}
+
+
+void PlayLists::clear() {
+    TRACE("PlayLists::clear");
+    if (playLists) {
+        int i=playLists->GetSize();
+        LOGGER("size",i);
+        while (i>0) {      	
+            PlayList* playList = getPlayList(--i);            
+            playLists->Del(i);
+            playList->deleteReference();
+        }
+    }
 }

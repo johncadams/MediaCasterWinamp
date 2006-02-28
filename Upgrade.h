@@ -7,18 +7,18 @@
 class Upgrade {
     private:
         HWND   hwnd;
-        int    connectionProblem;
+        int    connProblem;
         string installerUrl;
         
     protected:
-        void downloadFunction()     throw(ConnectionException);
+        void       downloadFunction()      throw(ConnectionException);
         
     public:     
         Upgrade();
           
-        void        download()      throw(ConnectionException);
-        int         isAvailable()   throw(ConnectionException);
-        const char* getIsAvailableStatus();
+        void        download()             throw(ConnectionException);
+        int         isAvailable()          throw(ConnectionException);
+        const char* getIsAvailableStatus() throw();
         void        setHwnd(HWND);
 };
 

@@ -1,4 +1,3 @@
-
 using namespace std;
 #include <string>
 #include <windows.h>
@@ -15,10 +14,9 @@ using namespace std;
 
 
 Upgrade::Upgrade() {
-    TRACE("Upgrade::Upgrade");
-    
-    connectionProblem = 0;
-    installerUrl      = configuration.getURL( configuration.getInstallerPath() );
+    TRACE("Upgrade::Upgrade");    
+    connProblem  = 0;
+    installerUrl = configuration.getURL( configuration.getInstallerPath() );
 }
 
 
@@ -88,8 +86,7 @@ void Upgrade::download() throw(ConnectionException) {
 
 int Upgrade::isAvailable() throw(ConnectionException) {
     TRACE("Upgrade::isAvailable");
-    
-    if (connectionProblem) return 0;
+    int status = false;
     
     try {                
 //      Don't output status message since this gets called from config dialog too
@@ -101,40 +98,47 @@ int Upgrade::isAvailable() throw(ConnectionException) {
         LOGGER("Remote", httpInfo.lastModified());
         if (httpInfo.lastModified()>configuration.getBuildDate()) {
             setStatusMessage(hwnd, UPGRADE_AVAIL_STATUS);
-            return true;
+            status = true;
         } else {
 //          setStatusMessage(hwnd, UPTODATE_STATUS);
-            return false;
+            status = false;
         }
+        connProblem = 0;
         
     } catch (HTTPAuthenticationException& ex) {
         // If we don't catch this this way it gets reported as HTTPException
-        throw ex;
+        RETHROW(ex);
         
     } catch (HTTPException& ex) {
         if (ex.getErrorCode() == 404) {
             CATCH(ex);
-            connectionProblem = 1;
-            connectionProblemBox(hwnd, installerUrl.c_str());
+            if (!connProblem) connectionProblemBox(hwnd, installerUrl.c_str());
+            connProblem = 1;
         } else {
-            throw ex;
+            RETHROW(ex);
         }
+    } catch (ConnectionException& ex) {
+    	RETHROW(ex);
     }
-    return false;
+    return status;
 }
 
 
-const char* Upgrade::getIsAvailableStatus() {
+const char* Upgrade::getIsAvailableStatus() throw() {
     TRACE("Upgrade::getUpgradeAvailableMessage");
     
-    if (connectionProblem) {
-        return CONN_PROBLEM_STATUS2;        
-        
-    } else if (isAvailable()) {
-        return UPGRADE_AVAIL_STATUS;
-        
-    } else {
-        return UPTODATE_STATUS;
+    try {
+	    if (connProblem) {
+	        return CONN_PROBLEM_STATUS2;        
+	        
+	    } else if (isAvailable()) {
+	        return UPGRADE_AVAIL_STATUS;
+	        
+	    } else {
+	        return UPTODATE_STATUS;
+	    }
+    } catch (ConnectionException& ex) {
+    	return CONN_PROBLEM_STATUS2;        
     }
 }
 

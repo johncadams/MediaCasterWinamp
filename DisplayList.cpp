@@ -72,16 +72,16 @@ MasterList::~MasterList() {
 MasterList* MasterList::addReference() {
     TRACE("MasterList::addReference");
     this->refCount++;
+    LOGGER("refCount",refCount);
     return this;
 }
 
 
 void MasterList::deleteReference() {
     TRACE("MasterList::deleteReference");
-    if (--refCount==0) {
-        LOGGER("refCount",refCount);
-        delete this;
-    }
+    refCount--;
+    LOGGER("refCount",refCount);
+    if (refCount==0) delete this;
 }
 
 
@@ -214,16 +214,16 @@ MasterList* DisplayListImpl::referenceMasterList() {
 DisplayList* DisplayListImpl::addReference() {
     TRACE("DisplayListImpl::addReference");
     this->refCount++;
+	LOGGER("refCount",refCount);
     return this;
 }
 
 
 void DisplayListImpl::deleteReference() {
     TRACE("DisplayListImpl::deleteReference");
-    if (--refCount==0) {
-        LOGGER("refCount",refCount);
-        delete this;
-    }
+    refCount--;
+    LOGGER("refCount",refCount);
+    if (refCount==0) delete this;
 }
 
 

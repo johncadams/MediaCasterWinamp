@@ -52,16 +52,17 @@ using namespace std;
 #define UPDATE_DURATION     150
 
 
-static CasterLibrary* library;
-static int            hasLoaded  = 0;
-static int            connFailed = 0;
-static int            treeId;
-static HMENU          rootMenus;
-static int            skinlistViewId;
+static CasterLibrary*     library;
+static int                hasLoaded  = 0;
+static int                connFailed = 0;
+static int                treeId;
+static HMENU              rootMenus;
+static int                skinlistViewId;
+static unexpected_handler unexpectedHandler;
 
 // Globals
-Configuration         configuration;
-W_ListView            listView;
+Configuration             configuration;
+W_ListView                listView;
 
 
     
@@ -224,8 +225,15 @@ int isConnectionFailed() {
 }
 
 
+void exceptionHandler() {
+	TRACE("---Uncaught Exception Handler---");
+	unexpectedHandler();
+}
+
 int init() {
     TRACE("init");
+    unexpectedHandler = set_unexpected(exceptionHandler);
+    
     configuration.load(plugin);  
     
     // add our root item to the tree
@@ -257,7 +265,8 @@ int init() {
 
 void quit() {
     TRACE("quit");
-    delete library;
+    delete library;    
+    set_unexpected(unexpectedHandler);
 }
 
 
@@ -265,6 +274,15 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
     // TRACE("configDialogCallback");
     switch (uMsg) {
         case WM_INITDIALOG: {
+        	// Just to speed things up when we have connection problems
+        	int         upgradeAvailable = false;
+        	const char* upgradeMsg       = CONN_PROBLEM_STATUS2;
+        	
+        	if (!::isConnectionFailed()) {
+        		upgradeAvailable = library->isUpgradeAvailable();
+        		upgradeMsg       = library->getUpgradeAvailableStatus();
+        	}
+        	
             SetDlgItemText(configDlg, DLG_HOST,       configuration.getHost());
             SetDlgItemText(configDlg, DLG_PORT,       configuration.getPort());
             SetDlgItemText(configDlg, DLG_USERNAME,   configuration.getUser());
@@ -281,8 +299,8 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
             SendDlgItemMessage(configDlg, DLG_PASSWORD, EM_SETPASSWORDCHAR, '*', 0);
             
             HWND button = GetDlgItem(configDlg, DLG_UPGRADE);
-            SetDlgItemText(configDlg, DLG_UPDTEXT, library->getUpgradeAvailableStatus());
-            EnableWindow(button, library->isUpgradeAvailable());            
+            SetDlgItemText(configDlg, DLG_UPDTEXT, upgradeMsg);
+            EnableWindow(button, upgradeAvailable);            
             
             return 0;
         }

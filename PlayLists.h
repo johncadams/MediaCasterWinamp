@@ -5,9 +5,9 @@
 
 
 class PlayList: public DisplayListImpl {
-    public:
+	public:
         PlayList(const char* name, const char* desc, DisplayList& displayList) :
-            DisplayListImpl(name, displayList) {}
+            DisplayListImpl(name, displayList) { }
 };
 
 
@@ -46,13 +46,12 @@ class PlayLists {
         C_ItemList*  playLists;
         DisplayList& rootList;
         HWND         hwnd;
-        int          connectionProblem;
         
     public:
         PlayLists(DisplayList&);        
         virtual PlayLists::~PlayLists();
 
-        virtual void         setHwnd(HWND)          { PlayLists::hwnd = hwnd;                 }
+        virtual void         setHwnd(HWND hwnd)     { PlayLists::hwnd = hwnd;                 }
         virtual void         download() throw(ConnectionException);
         virtual void         clear();
         virtual int          getSize()              { return playLists->GetSize();            }

@@ -38,7 +38,7 @@ class Tracer {
     #define TRACE(method)   Tracer tRaCeR(method)
     #define LOGGER(msg,num) tRaCeR.Logger(msg,num)
     #define THROW(ex)       tRaCeR.Logger("Throw",       ex.toString().c_str()); throw ex;
-    #define RETHROW(ex)     tRaCeR.Logger("Re-throwing", ex.toString().c_str()); throw ex;
+    #define RETHROW(ex)     tRaCeR.Logger("Re-throwing", ex.toString().c_str()); throw;
     #define IGNOREX(ex,msg) tRaCeR.Logger(msg,           ex.toString().c_str())
     #define CATCH(ex)       tRaCeR.Logger("Catch",       ex.toString().c_str())
 #else
