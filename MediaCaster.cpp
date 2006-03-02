@@ -227,6 +227,7 @@ int isConnectionFailed() {
 
 void exceptionHandler() {
 	TRACE("---Uncaught Exception Handler---");
+	connectionProblemBox(plugin.hwndLibraryParent, "Unexpected exception caught");
 	unexpectedHandler();
 }
 
