@@ -38,7 +38,7 @@ AutoCloseWindow true
 ShowInstDetails nevershow
 
 ; location of Winamp for auto-installing
-!define winampInstaller "http://download.nullsoft.com/winamp/client/winamp513_full_kornbundle_emusic-7plus.exe"
+!define winampInstaller "http://download.nullsoft.com/winamp/client/winamp521_full_bundle_emusic-7plus.exe"
 
 ;--------------------------------
 
