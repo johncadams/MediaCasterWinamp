@@ -57,6 +57,8 @@ static int                hasLoaded  = 0;
 static int                connFailed = 0;
 static int                treeId;
 static HMENU              rootMenus;
+static HMENU              childMenus;
+static HMENU              listMenus;
 static int                skinlistViewId;
 static unexpected_handler unexpectedHandler;
 
@@ -79,15 +81,15 @@ static char* bitrates[][2]=
 static int bitratesSize = sizeof(bitrates)/sizeof(char*)/2;
 
 static ChildWndResizeItem resize_rlist[]=
-{ { DLG_SEARCH,  0x0010},
-  { DLG_CLEAR,   0x1010},
-  { DLG_LIST,    0x0011},
-  { DLG_PLAY,    0x0101},
-  { DLG_ENQUEUE, 0x0101},
-  { DLG_REFRESH2,0x0101},
-  { DLG_ABORT,   0x0101},
-  { DLG_STATUS,  0x0111},
-  { DLG_CONFIG,  0x1111},
+{ { MAIN_SEARCH_FIELD, 0x0010},
+  { MAIN_CLEAR_BTN,    0x1010},
+  { MAIN_LIST,         0x0011},
+  { MAIN_PLAY_BTN,     0x0101},
+  { MAIN_ENQUEUE_BTN,  0x0101},
+  { MAIN_REFRESH_BTN,  0x0101},
+  { MAIN_ABORT_BTN,    0x0101},
+  { MAIN_STATUS_TEXT,  0x0111},
+  { MAIN_CONFIG_BTN,   0x1111},
 };
 
 
@@ -183,26 +185,26 @@ void newFeatureBox(HWND hwnd, const char* reason, int& warned) {
 
 void setStatusMessage(HWND hwnd, const char* status) {
 //  TRACE("setStatusMessage");
-    SetDlgItemText(hwnd, DLG_STATUS, status);
+    SetDlgItemText(hwnd, MAIN_STATUS_TEXT, status);
 }
 
 
 void showAbortButton(HWND hwnd, int show) {
     TRACE("showAbortButton");    
-    ShowWindow(GetDlgItem(hwnd, DLG_REFRESH2),!show);
-    ShowWindow(GetDlgItem(hwnd, DLG_ABORT),    show);    
+    ShowWindow(GetDlgItem(hwnd, MAIN_REFRESH_BTN),!show);
+    ShowWindow(GetDlgItem(hwnd, MAIN_ABORT_BTN),   show);    
 }
 
 
 void grayRefreshButton(HWND hwnd, int gray) {
     TRACE("grayRefreshButton");    
-    EnableWindow(GetDlgItem(hwnd, DLG_REFRESH2),!gray);
+    EnableWindow(GetDlgItem(hwnd, MAIN_REFRESH_BTN),!gray);
 }
 
 
 void getSearchString(HWND hwnd, char* str, unsigned strlen) {
     TRACE("getSearchString");
-    GetDlgItemText(hwnd, DLG_SEARCH, str, strlen);
+    GetDlgItemText(hwnd, MAIN_SEARCH_FIELD, str, strlen);
     str[strlen-1] = '\0';
 }
 
@@ -245,8 +247,10 @@ int init() {
     library = new CasterLibrary(treeId);
     
     // add our pop-up menus
-    rootMenus = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(IDR_POPUPMENU));
-    
+    rootMenus  = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(TREE_ROOT_MENU));
+    childMenus = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(TREE_CHILD_MENU));
+    listMenus  = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(MAIN_LIST_POPUP));
+        
     // see if we have a pending error from a previous installer run
     if (configuration.getMessage()[0]) {
         
@@ -284,23 +288,23 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
         		upgradeMsg       = library->getUpgradeAvailableStatus();
         	}
         	
-            SetDlgItemText(configDlg, DLG_HOST,       configuration.getHost());
-            SetDlgItemText(configDlg, DLG_PORT,       configuration.getPort());
-            SetDlgItemText(configDlg, DLG_USERNAME,   configuration.getUser());
-            SetDlgItemText(configDlg, DLG_PASSWORD,   configuration.getPassword());
-            SetDlgItemText(configDlg, DLG_CONNECTED,  "");
-            CheckDlgButton(configDlg, DLG_AUTOUPGRADE,configuration.isAutoUpdate()?BST_CHECKED:BST_UNCHECKED);
+            SetDlgItemText(configDlg, CONFIG_HOST_FIELD,     configuration.getHost());
+            SetDlgItemText(configDlg, CONFIG_PORT_FIELD,     configuration.getPort());
+            SetDlgItemText(configDlg, CONFIG_USERNAME_FIELD, configuration.getUser());
+            SetDlgItemText(configDlg, CONFIG_PASSWORD_FIELD, configuration.getPassword());
+            SetDlgItemText(configDlg, CONFIG_CONNECTED_TEXT, "");
+            CheckDlgButton(configDlg, CONFIG_UPGRADE_CHECK,  configuration.isAutoUpdate()?BST_CHECKED:BST_UNCHECKED);
             
             int j = 0;
             for (int i=0; i<bitratesSize; i++) {
-                SendDlgItemMessage(configDlg, DLG_BITRATE, CB_INSERTSTRING, i, (LPARAM)bitrates[i][0]);
+                SendDlgItemMessage(configDlg, CONFIG_BITRATE_SELECT, CB_INSERTSTRING, i, (LPARAM)bitrates[i][0]);
                 if (strcmp(bitrates[i][1], configuration.getBitrate())==0) j = i;
             }
-            SendDlgItemMessage(configDlg, DLG_BITRATE,  CB_SETCURSEL,        j,  0);
-            SendDlgItemMessage(configDlg, DLG_PASSWORD, EM_SETPASSWORDCHAR, '*', 0);
+            SendDlgItemMessage(configDlg, CONFIG_BITRATE_SELECT,  CB_SETCURSEL,        j,  0);
+            SendDlgItemMessage(configDlg, CONFIG_PASSWORD_FIELD, EM_SETPASSWORDCHAR, '*', 0);
             
-            HWND button = GetDlgItem(configDlg, DLG_UPGRADE);
-            SetDlgItemText(configDlg, DLG_UPDTEXT, upgradeMsg);
+            HWND button = GetDlgItem(configDlg, CONFIG_UPGRADE_BTN);
+            SetDlgItemText(configDlg, CONFIG_UPGRADE_TEXT, upgradeMsg);
             EnableWindow(button, upgradeAvailable);            
             
             return 0;
@@ -314,23 +318,23 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                     char tmp[1024];
                     int  changed = 0;
                     
-                    GetDlgItemText(configDlg,DLG_HOST,tmp,sizeof(tmp));
+                    GetDlgItemText(configDlg,CONFIG_HOST_FIELD,tmp,sizeof(tmp));
                      changed |= (strcmp(tmp,configuration.getHost())!=0);
                      configuration.setHost(tmp);
                      
-                    GetDlgItemText(configDlg,DLG_PORT,tmp,sizeof(tmp));
+                    GetDlgItemText(configDlg,CONFIG_PORT_FIELD,tmp,sizeof(tmp));
                      changed |= (strcmp(tmp,configuration.getPort())!=0);
                      configuration.setPort(tmp);
                      
-                    GetDlgItemText(configDlg,DLG_USERNAME,tmp,sizeof(tmp));
+                    GetDlgItemText(configDlg,CONFIG_USERNAME_FIELD,tmp,sizeof(tmp));
                      changed |= (strcmp(tmp,configuration.getUser())!=0);
                      configuration.setUser(tmp);
                      
-                    GetDlgItemText(configDlg,DLG_PASSWORD,tmp,sizeof(tmp));
+                    GetDlgItemText(configDlg,CONFIG_PASSWORD_FIELD,tmp,sizeof(tmp));
                      changed |= (strcmp(tmp,configuration.getPassword())!=0);
                      configuration.setPassword(tmp);
     
-                    GetDlgItemText(configDlg,DLG_BITRATE,tmp,sizeof(tmp));
+                    GetDlgItemText(configDlg,CONFIG_BITRATE_SELECT,tmp,sizeof(tmp));
                      for (int i=0; i<bitratesSize; i++) {
                         if (strcmp(bitrates[i][0], tmp)==0) {
                             configuration.setBitrate(bitrates[i][1]);
@@ -338,7 +342,7 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                         }
                     }   
                 
-                    configuration.setAutoUpdate( IsDlgButtonChecked(configDlg,DLG_AUTOUPGRADE) );
+                    configuration.setAutoUpdate( IsDlgButtonChecked(configDlg,CONFIG_UPGRADE_CHECK) );
                  
                     EndDialog(configDlg,LOWORD(wParam) == IDOK);
                     if (changed || isConnectionFailed()) {
@@ -346,18 +350,18 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                     }
                     break;                            
                 }
-                case DLG_REFRESH: {
+                case CONFIG_REFRESH_BTN: {
                     TRACE("configDialogCallback::DLG_REFRESH");
                     library->download();
                     break;                            
                 }    
-                case DLG_EMPTY: {
+                case CONFIG_EMPTY_BTN: {
                     TRACE("configDialogCallback::DLG_EMPTY");
                     EndDialog(configDlg,LOWORD(wParam) == IDOK);
                     library->clear();
                     break;  
                 }
-                case DLG_UPGRADE: {
+                case CONFIG_UPGRADE_BTN: {
                     TRACE("configDialogCallback::DLG_UPGRADE");                    
                     EndDialog(configDlg,LOWORD(wParam) == IDOK);
                     library->downloadUpgrade();
@@ -375,7 +379,27 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
 
 void configDialog(HWND hwnd) {
     TRACE("configDialog");
-    DialogBox(plugin.hDllInstance, MAKEINTRESOURCE(IDD_CONFIGDIALOG), hwnd, configDialogCallback);
+    DialogBox(plugin.hDllInstance, MAKEINTRESOURCE(CONFIG_DIALOG), hwnd, configDialogCallback);
+}
+
+
+static int onListItemClick(HWND hwndParent) {
+    TRACE("onListItemClick");
+    
+    POINT p;
+    GetCursorPos(&p);
+    int r=TrackPopupMenu(GetSubMenu(listMenus,0),TPM_RETURNCMD|TPM_RIGHTBUTTON|TPM_LEFTBUTTON|TPM_NONOTIFY,p.x,p.y,0,hwndParent,NULL);
+
+    switch (r) {
+        case MAIN_LIST_PLAY_ITEM:
+            library->play();
+            break;
+    
+        case MAIN_LIST_ENQUEUE_ITEM:
+            library->enqueue();
+            break;
+    }            
+    return 1;
 }
 
 
@@ -396,7 +420,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
     
         case WM_INITDIALOG: {
             TRACE("mainPageCallback/WM_INITDIALOG");
-            library->setTreeId(lParam, mainDlg);            
+            library->setTreeId(lParam, mainDlg);
         
             *(void**)&wad_getColor              =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,1,ML_IPC_SKIN_WADLG_GETFUNC);
             *(void**)&wad_handleDialogMsgs      =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,2,ML_IPC_SKIN_WADLG_GETFUNC);
@@ -407,7 +431,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
             if (cr_init) cr_init(mainDlg,resize_rlist,sizeof(resize_rlist)/sizeof(resize_rlist[0]));
 
             listView.setLibraryParentWnd(plugin.hwndLibraryParent);
-            listView.setwnd(GetDlgItem(mainDlg,DLG_LIST));
+            listView.setwnd(GetDlgItem(mainDlg,MAIN_LIST));
             listView.AddCol("Artist", 140);
             listView.AddCol("Title",  140);
             listView.AddCol("Album",  140);
@@ -422,7 +446,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
             
             skinlistViewId = SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,(int)listView.getwnd(),ML_IPC_SKIN_LISTVIEW);
 
-            SetDlgItemText(mainDlg,DLG_SEARCH,configuration.getFilter());
+            SetDlgItemText(mainDlg,MAIN_SEARCH_FIELD,configuration.getFilter());
             if (!hasLoaded || isConnectionFailed()) {
                 // Defer the loading until we have completly initialized the screen
                 hasLoaded = 1;
@@ -433,8 +457,12 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
         }
         case WM_NOTIFY: {            
             LPNMHDR l=(LPNMHDR)lParam;
-            if (l->idFrom==DLG_LIST) {
-                if (l->code == (UINT)NM_DBLCLK) {
+            if (l->idFrom==MAIN_LIST) {
+            	if (l->code == (UINT)NM_RCLICK) {
+            		TRACE("mainPageCallback/NM_RLCLK");
+            		onListItemClick(mainDlg);
+            		
+            	} else if (l->code == (UINT)NM_DBLCLK) {
                     TRACE("mainPageCallback/NM_DBLCLK");
                     if (!!(GetAsyncKeyState(VK_SHIFT)&0x8000)) library->enqueue();
                     else                                       library->play();
@@ -534,37 +562,37 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
     
     case WM_COMMAND:
         switch(LOWORD(wParam)) {
-            case DLG_CLEAR: {
+            case MAIN_CLEAR_BTN: {
                 TRACE("mainPageCallback/DLG_CLEAR");
-                SetDlgItemText(mainDlg,DLG_SEARCH,"");
+                SetDlgItemText(mainDlg,MAIN_SEARCH_FIELD,"");
                 break;
             }
-            case DLG_PLAY: {
+            case MAIN_PLAY_BTN: {
                 TRACE("mainPageCallback/DLG_PLAY");
                 library->play();
                 break;
             }
-            case DLG_ENQUEUE: {
+            case MAIN_ENQUEUE_BTN: {
                 TRACE("mainPageCallback/DLG_ENQUEUE");
                 library->enqueue();
                 break;
             }
-            case DLG_REFRESH2: {
+            case MAIN_REFRESH_BTN: {
                 TRACE("mainPageCallback/DLG_REFRESH2");
                 library->download();
                 break;
             }
-            case DLG_ABORT: {
+            case MAIN_ABORT_BTN: {
                 TRACE("mainPageCallback/DLG_ABORT");
                 library->abort();                
                 break;
             }
-            case DLG_CONFIG: {
+            case MAIN_CONFIG_BTN: {
                 TRACE("mainPageCallback/DLG_CONFIG");
                 configDialog(mainDlg);
                 break;
             }
-            case DLG_SEARCH:                
+            case MAIN_SEARCH_FIELD:                
                 if (HIWORD(wParam) == EN_CHANGE) {
                     TRACE("mainPageCallback/DLG_SEARCH");
                     KillTimer(mainDlg,SEARCH_TIMER);
@@ -579,7 +607,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
             TRACE("mainPageCallback/SEARCH_TIMER");
             KillTimer(mainDlg,SEARCH_TIMER);
             char filter[256];
-            GetDlgItemText(mainDlg,DLG_SEARCH,filter,sizeof(filter));
+            GetDlgItemText(mainDlg,MAIN_SEARCH_FIELD,filter,sizeof(filter));
             filter[255]=0;
             configuration.setFilter(filter);
             library->display();
@@ -603,7 +631,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
         break;
       
     case WM_PAINT: {
-            int tab[] = { DLG_SEARCH|DCW_SUNKENBORDER, DLG_LIST|DCW_SUNKENBORDER};
+            int tab[] = { MAIN_SEARCH_FIELD|DCW_SUNKENBORDER, MAIN_LIST|DCW_SUNKENBORDER};
             if (wad_DrawChildWindowBorders) wad_DrawChildWindowBorders(mainDlg,tab,2);
         }
         return 0;
@@ -655,9 +683,9 @@ static BOOL CALLBACK authDialogCallback(HWND authDlg, UINT uMsg, WPARAM wParam, 
     switch (uMsg) {
         case WM_INITDIALOG: {
             TRACE("authDialogCallback/WM_INITDIALOG");
-            SetDlgItemText(authDlg, DLG_USERNAME,configuration.getUser());
-            SetDlgItemText(authDlg, DLG_PASSWORD,configuration.getPassword()); 
-            SendDlgItemMessage(authDlg, DLG_PASSWORD, EM_SETPASSWORDCHAR, '*', 0);       
+            SetDlgItemText(authDlg, CONFIG_USERNAME_FIELD,configuration.getUser());
+            SetDlgItemText(authDlg, CONFIG_PASSWORD_FIELD,configuration.getPassword()); 
+            SendDlgItemMessage(authDlg, CONFIG_PASSWORD_FIELD, EM_SETPASSWORDCHAR, '*', 0);       
             return 0;
         }
         case WM_COMMAND:
@@ -665,9 +693,9 @@ static BOOL CALLBACK authDialogCallback(HWND authDlg, UINT uMsg, WPARAM wParam, 
                 case IDOK: {
                     TRACE("authDialogCallback/IDOK");
                     char tmp[64];
-                    GetDlgItemText(authDlg,DLG_USERNAME,tmp,sizeof(tmp));
+                    GetDlgItemText(authDlg,CONFIG_USERNAME_FIELD,tmp,sizeof(tmp));
                      configuration.setUser(tmp);                    
-                    GetDlgItemText(authDlg,DLG_PASSWORD,tmp,sizeof(tmp));
+                    GetDlgItemText(authDlg,CONFIG_PASSWORD_FIELD,tmp,sizeof(tmp));
                      configuration.setPassword(tmp);      
                     library->download();                     
                     EndDialog(authDlg,LOWORD(wParam) == IDOK);                  
@@ -686,25 +714,45 @@ static BOOL CALLBACK authDialogCallback(HWND authDlg, UINT uMsg, WPARAM wParam, 
  
 void authDialog(HWND hwnd) {
     ::setStatusMessage(hwnd, "Authorization required");
-    DialogBox(plugin.hDllInstance, MAKEINTRESOURCE(IDD_AUTHDIALOG), hwnd, authDialogCallback);
+    DialogBox(plugin.hDllInstance, MAKEINTRESOURCE(AUTH_DIALOG), hwnd, authDialogCallback);
 }
   
   
-static int onTreeItemClick(int param, int action, HWND hwndParent) {
+static int onTreeItemClick(int selTreeId, int action, HWND hwndParent) {
     if (action == ML_ACTION_RCLICK) {
         TRACE("onTreeItemClick/ML_ACTION_RCLICK");
         POINT p;
+        int r;
         GetCursorPos(&p);
-        int r=TrackPopupMenu(GetSubMenu(rootMenus,0),TPM_RETURNCMD|TPM_RIGHTBUTTON|TPM_LEFTBUTTON|TPM_NONOTIFY,p.x,p.y,0,hwndParent,NULL);
-    
+        
+        if (treeId == selTreeId) {
+        	r = TrackPopupMenu(GetSubMenu(rootMenus,0),TPM_RETURNCMD|TPM_RIGHTBUTTON|TPM_LEFTBUTTON|TPM_NONOTIFY,p.x,p.y,0,hwndParent,NULL);
+        } else {
+        	r = TrackPopupMenu(GetSubMenu(childMenus,0),TPM_RETURNCMD|TPM_RIGHTBUTTON|TPM_LEFTBUTTON|TPM_NONOTIFY,p.x,p.y,0,hwndParent,NULL);
+        }
+        
         switch (r) {
-            case ID_ABOUT:
+            case TREE_ABOUT_ITEM:
                 aboutBox(hwndParent);
                 break;
         
-            case ID_CONFIG:
+            case TREE_CONFIG_ITEM:
                 configDialog(hwndParent);
                 break;
+                
+            case TREE_PLAY_ITEM: {
+            	TRACE("onTreeItemClick/TREE_PLAY_ITEM");
+            	library->setTreeId(selTreeId, hwndParent);
+            	library->play();
+            	break;
+            }
+            	
+            case TREE_ENQUEUE_ITEM: {
+            	TRACE("onTreeItemClick/TREE_ENQUEUE_ITEM");
+            	library->setTreeId(selTreeId, hwndParent);
+            	library->enqueue();
+            	break;
+            }
         }            
     }
     return 1;
@@ -725,7 +773,7 @@ int pluginMessageProc(int message_type, int param1, int param2, int param3) {
             switch (message_type) {
                 case ML_MSG_TREE_ONCREATEVIEW: {
                     TRACE("pluginMessageProc/ML_MSG_TREE_ONCREATEVIEW");
-                    return (int)CreateDialogParam(plugin.hDllInstance,MAKEINTRESOURCE(ID_VIEW),(HWND)param2,mainPageCallback,param1);
+                    return (int)CreateDialogParam(plugin.hDllInstance,MAKEINTRESOURCE(MAIN_DIALOG),(HWND)param2,mainPageCallback,param1);
                 }
                 case ML_MSG_TREE_ONCLICK:
                     return onTreeItemClick(param1,param2,(HWND)param3);
