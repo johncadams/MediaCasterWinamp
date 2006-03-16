@@ -249,7 +249,7 @@ int init() {
     // add our pop-up menus
     rootMenus  = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(TREE_ROOT_MENU));
     childMenus = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(TREE_CHILD_MENU));
-    listMenus  = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(MAIN_LIST_POPUP));
+    listMenus  = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(MAIN_LIST_MENU));
         
     // see if we have a pending error from a previous installer run
     if (configuration.getMessage()[0]) {
@@ -683,9 +683,9 @@ static BOOL CALLBACK authDialogCallback(HWND authDlg, UINT uMsg, WPARAM wParam, 
     switch (uMsg) {
         case WM_INITDIALOG: {
             TRACE("authDialogCallback/WM_INITDIALOG");
-            SetDlgItemText(authDlg, CONFIG_USERNAME_FIELD,configuration.getUser());
-            SetDlgItemText(authDlg, CONFIG_PASSWORD_FIELD,configuration.getPassword()); 
-            SendDlgItemMessage(authDlg, CONFIG_PASSWORD_FIELD, EM_SETPASSWORDCHAR, '*', 0);       
+            SetDlgItemText(authDlg, AUTH_USERNAME_FIELD,configuration.getUser());
+            SetDlgItemText(authDlg, AUTH_PASSWORD_FIELD,configuration.getPassword()); 
+            SendDlgItemMessage(authDlg, AUTH_PASSWORD_FIELD, EM_SETPASSWORDCHAR, '*', 0);       
             return 0;
         }
         case WM_COMMAND:
@@ -693,9 +693,9 @@ static BOOL CALLBACK authDialogCallback(HWND authDlg, UINT uMsg, WPARAM wParam, 
                 case IDOK: {
                     TRACE("authDialogCallback/IDOK");
                     char tmp[64];
-                    GetDlgItemText(authDlg,CONFIG_USERNAME_FIELD,tmp,sizeof(tmp));
+                    GetDlgItemText(authDlg,AUTH_USERNAME_FIELD,tmp,sizeof(tmp));
                      configuration.setUser(tmp);                    
-                    GetDlgItemText(authDlg,CONFIG_PASSWORD_FIELD,tmp,sizeof(tmp));
+                    GetDlgItemText(authDlg,AUTH_PASSWORD_FIELD,tmp,sizeof(tmp));
                      configuration.setPassword(tmp);      
                     library->download();                     
                     EndDialog(authDlg,LOWORD(wParam) == IDOK);                  
@@ -745,8 +745,7 @@ static int onTreeItemClick(int selTreeId, int action, HWND hwndParent) {
             	library->setTreeId(selTreeId, hwndParent);
             	library->play();
             	break;
-            }
-            	
+            }            	
             case TREE_ENQUEUE_ITEM: {
             	TRACE("onTreeItemClick/TREE_ENQUEUE_ITEM");
             	library->setTreeId(selTreeId, hwndParent);
