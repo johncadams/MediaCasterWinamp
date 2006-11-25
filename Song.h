@@ -1,8 +1,8 @@
-
-using namespace std;
 #include <string>
 #include <windows.h>
 #include "gen_ml/ml.h"
+
+using namespace std;
 
 
 #ifndef SONG_H

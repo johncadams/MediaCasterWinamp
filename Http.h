@@ -2,10 +2,11 @@
 #ifndef GETTER_H
 #define GETTER_H
 
-using namespace std;
 #include <string>
 #include <exception>
 #include "jnetlib/jnetlib.h"
+
+using namespace std;
 
 
 long  getDate   (const char*);

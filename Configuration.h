@@ -1,11 +1,12 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-using namespace std;
 #include <map>
 #include <string>
 #include <windows.h>
 #include "gen_ml/ml.h"
+
+using namespace std;
 
 
 class Configuration {

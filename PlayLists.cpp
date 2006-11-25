@@ -1,5 +1,3 @@
-
-using namespace std;
 #include <string>
 
 #include "gen_ml/listview.h"
@@ -10,6 +8,8 @@ using namespace std;
 #include "MediaCaster.h"
 #include "Trace.h"
 #include "Messages.h"
+
+using namespace std;
 
 
 SearchPlayList::SearchPlayList(const char* name, const char* desc, const char* prefilter, DisplayList& displayList): 

@@ -44,8 +44,8 @@ class Tracer {
 #else
     #define TRACE(method)
     #define LOGGER(msg,num)
-    #define THROW(ex)
-    #define RETHROW(ex)
+    #define THROW(ex)                                                            throw ex;
+    #define RETHROW(ex)                                                          throw;
     #define IGNOREX(ex,msg)
     #define CATCH(ex)
 #endif
