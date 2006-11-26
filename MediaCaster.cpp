@@ -70,26 +70,33 @@ W_ListView                listView;
     
 // These have to agree with Apache::MP3::Resample!
 static char* bitrates[][2]=
-{   "24kbps", "stream=1;bitrate=24%20kbps",
-    "40kbps", "stream=1;bitrate=40%20kbps",
-    "56kbps", "stream=1;bitrate=56%20kbps",
-    "64kbps", "stream=1;bitrate=64%20kbps",
-    "96kbps", "stream=1;bitrate=96%20kbps",
-    "Full",   "stream=1",
+{   {"24kbps", "stream=1;bitrate=24%20kbps"},
+    {"40kbps", "stream=1;bitrate=40%20kbps"},
+    {"56kbps", "stream=1;bitrate=56%20kbps"},
+    {"64kbps", "stream=1;bitrate=64%20kbps"},
+    {"96kbps", "stream=1;bitrate=96%20kbps"},
+    {"Full",   "stream=1"},
 };
 
 static int bitratesSize = sizeof(bitrates)/sizeof(char*)/2;
 
-static ChildWndResizeItem resize_rlist[]=
-{ { MAIN_SEARCH_FIELD, 0x0010},
-  { MAIN_CLEAR_BTN,    0x1010},
-  { MAIN_LIST,         0x0011},
-  { MAIN_PLAY_BTN,     0x0101},
-  { MAIN_ENQUEUE_BTN,  0x0101},
-  { MAIN_REFRESH_BTN,  0x0101},
-  { MAIN_ABORT_BTN,    0x0101},
-  { MAIN_STATUS_TEXT,  0x0111},
-  { MAIN_CONFIG_BTN,   0x1111},
+static ChildWndResizeItem main_resize_rlist[] =
+{ { MAIN_SEARCH_FIELD,     0x0010},
+  { MAIN_CLEAR_BTN,        0x1010},
+  { MAIN_LIST,             0x0011},
+  { MAIN_PLAY_BTN,         0x0101},
+  { MAIN_ENQUEUE_BTN,      0x0101},
+  { MAIN_REFRESH_BTN,      0x0101},
+  { MAIN_ABORT_BTN,        0x0101},
+  { MAIN_STATUS_TEXT,      0x0111},
+  { MAIN_CONFIG_BTN,       0x1111},
+};
+
+static ChildWndResizeItem config_resize_rlist[] =
+{ { CONFIG_HOST_FIELD,     0x0010},
+  { CONFIG_PORT_FIELD,     0x1010},
+  { CONFIG_USERNAME_FIELD, 0x0011},
+  { CONFIG_PASSWORD_FIELD, 0x0101},
 };
 
 
@@ -110,14 +117,14 @@ static int CenteredBox(HWND hwnd, const char* message, const char* title, int bu
     char*    line;
     string   msg;
     
-    while(line=strtok(tok, "\n")) {
+    while( (line=strtok(tok, "\n")) ) {
         len = len>strlen(line)?len:strlen(line);
         tok = NULL;
     }
     delete dup;
     
     tok = dup = strdup(message);    
-    while(line=strtok(tok, "\n")) {
+    while( (line=strtok(tok, "\n")) ) {
         int l = (int)((len-strlen(line))*.75);
         string pad;
         for (int i=0; i<l; i++) pad += " ";
@@ -156,7 +163,15 @@ static int downloadUpgradeIfAvailableDialog(HWND hwnd) {
 
 void aboutBox(HWND hwnd) {
     TRACE("aboutBox");
-    MsgBox(hwnd, COPYRIGHT_MSGBOX, "About");
+    char features[1024];
+    strcpy(features, COPYRIGHT_MSGBOX);
+#ifdef NO_THREADS
+    strcat(features, "\n\tThreads: disabled");
+#endif    
+#ifdef DO_TRACING
+    strcat(features, "\n\tLogging: enabled");
+#endif  
+    MsgBox(hwnd, features, "About");
 }
 
 
@@ -234,6 +249,7 @@ void exceptionHandler() {
 }
 
 int init() {
+printf("Hello World!\n");
     TRACE("init");
     unexpectedHandler = set_unexpected(exceptionHandler);
     
@@ -245,7 +261,7 @@ int init() {
     treeId = mla.this_id;
     
     library = new CasterLibrary(treeId);
-    
+return 0;    
     // add our pop-up menus
     rootMenus  = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(TREE_ROOT_MENU));
     childMenus = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(TREE_CHILD_MENU));
@@ -283,6 +299,10 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
         	int         upgradeAvailable = false;
         	const char* upgradeMsg       = CONN_PROBLEM_STATUS2;
         	
+        	SetTextColor(GetWindowDC(configDlg),wad_getColor?wad_getColor(WADLG_ITEMFG):RGB(0xff,0xff,0xff));
+            SetBkColor  (GetWindowDC(configDlg),RGB(0x00,0xff,0x00));
+        	if (cr_init) cr_init(configDlg,config_resize_rlist,sizeof(config_resize_rlist)/sizeof(config_resize_rlist[0]));
+        	
         	if (!::isConnectionFailed()) {
         		upgradeAvailable = library->isUpgradeAvailable();
         		upgradeMsg       = library->getUpgradeAvailableStatus();
@@ -300,12 +320,12 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                 SendDlgItemMessage(configDlg, CONFIG_BITRATE_SELECT, CB_INSERTSTRING, i, (LPARAM)bitrates[i][0]);
                 if (strcmp(bitrates[i][1], configuration.getBitrate())==0) j = i;
             }
-            SendDlgItemMessage(configDlg, CONFIG_BITRATE_SELECT,  CB_SETCURSEL,        j,  0);
+            SendDlgItemMessage(configDlg, CONFIG_BITRATE_SELECT, CB_SETCURSEL,        j,  0);
             SendDlgItemMessage(configDlg, CONFIG_PASSWORD_FIELD, EM_SETPASSWORDCHAR, '*', 0);
             
             HWND button = GetDlgItem(configDlg, CONFIG_UPGRADE_BTN);
             SetDlgItemText(configDlg, CONFIG_UPGRADE_TEXT, upgradeMsg);
-            EnableWindow(button, upgradeAvailable);            
+            EnableWindow(button, upgradeAvailable);
             
             return 0;
         }
@@ -371,7 +391,22 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                     EndDialog(configDlg,LOWORD(wParam) == IDOK);
                     break;                               
             }
-        return 0;
+        	break;
+        
+        case WM_SIZE:
+        	if (wParam != SIZE_MINIMIZED) {
+            	if (cr_resize) cr_resize(configDlg,config_resize_rlist,sizeof(config_resize_rlist)/sizeof(config_resize_rlist[0]));
+        	}
+        	break;
+      
+    	case WM_PAINT: {
+            int tab[] = { CONFIG_HOST_FIELD    |DCW_SUNKENBORDER, 
+            		      CONFIG_PORT_FIELD    |DCW_SUNKENBORDER,
+            		      CONFIG_USERNAME_FIELD|DCW_SUNKENBORDER,
+            		      CONFIG_PASSWORD_FIELD|DCW_SUNKENBORDER };
+            if (wad_DrawChildWindowBorders) wad_DrawChildWindowBorders(configDlg,tab,4);
+          	break;
+        }      
     }
     return 0;
 }
@@ -422,13 +457,13 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
             TRACE("mainPageCallback/WM_INITDIALOG");
             library->setTreeId(lParam, mainDlg);
         
-            *(void**)&wad_getColor              =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,1,ML_IPC_SKIN_WADLG_GETFUNC);
-            *(void**)&wad_handleDialogMsgs      =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,2,ML_IPC_SKIN_WADLG_GETFUNC);
-            *(void**)&wad_DrawChildWindowBorders=(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,3,ML_IPC_SKIN_WADLG_GETFUNC);              
+            *(void**)&wad_getColor              =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,1, ML_IPC_SKIN_WADLG_GETFUNC);
+            *(void**)&wad_handleDialogMsgs      =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,2, ML_IPC_SKIN_WADLG_GETFUNC);
+            *(void**)&wad_DrawChildWindowBorders=(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,3, ML_IPC_SKIN_WADLG_GETFUNC);              
             *(void**)&cr_init                   =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,32,ML_IPC_SKIN_WADLG_GETFUNC);
             *(void**)&cr_resize                 =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,33,ML_IPC_SKIN_WADLG_GETFUNC);
       
-            if (cr_init) cr_init(mainDlg,resize_rlist,sizeof(resize_rlist)/sizeof(resize_rlist[0]));
+            if (cr_init) cr_init(mainDlg,main_resize_rlist,sizeof(main_resize_rlist)/sizeof(main_resize_rlist[0]));
 
             listView.setLibraryParentWnd(plugin.hwndLibraryParent);
             listView.setwnd(GetDlgItem(mainDlg,MAIN_LIST));
@@ -626,7 +661,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
         
     case WM_SIZE:
         if (wParam != SIZE_MINIMIZED) {
-            if (cr_resize) cr_resize(mainDlg,resize_rlist,sizeof(resize_rlist)/sizeof(resize_rlist[0]));
+            if (cr_resize) cr_resize(mainDlg,main_resize_rlist,sizeof(main_resize_rlist)/sizeof(main_resize_rlist[0]));
         }
         break;
       
