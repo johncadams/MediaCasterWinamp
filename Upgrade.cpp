@@ -34,7 +34,7 @@ void Upgrade::downloadFunction() throw (ConnectionException) {
     string path = string(tempnam("", "installer_MediaCaster")) + ".exe";
     FILE*  fd   = fopen(path.c_str(), "wb");
     if (fd) {
-        while(cnt=httpGet.read(bytes, sizeof(bytes))) {
+        while( (cnt=httpGet.read(bytes, sizeof(bytes))) ) {
             total += cnt;
             char status[256];
             sprintf(status, INSTALLER_DOWNLOAD, int( float(total*100./httpGet.contentLen())) );
