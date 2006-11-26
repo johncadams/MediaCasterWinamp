@@ -9,15 +9,19 @@
 ;--------------------------------
 
 ; Uncomment the next line to enable auto Winamp download
-!define WINAMP_AUTOINSTALL
+; !define WINAMP_AUTOINSTALL
 
 !include WinMessages.nsh
+
+!ifndef DIR
+!define DIR "Release"
+!endif
 
 ; The name of the installer
 Name "Media Caster ver ${MC_VERSION}"
 
 ; The file to write
-OutFile "Release\MediaCaster.exe"
+OutFile ${DIR}\MediaCaster.exe
 
 ; The default installation directory
 InstallDir $PROGRAMFILES\Winamp
@@ -80,7 +84,7 @@ Section ""
     IfErrors 0 +3
       WriteINIStr $INSTDIR\Plugins\ml_mcaster.ini ml_mcaster message "Cannot replace $INSTDIR\Plugins\ml_mcaster.dll"
       goto startWinamp      
-    File Release\ml_mcaster.dll
+    File ${DIR}\ml_mcaster.dll
   
   
   ; createRegistry:
