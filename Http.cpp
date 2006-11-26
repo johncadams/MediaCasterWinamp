@@ -129,7 +129,7 @@ HTTPInfo::HTTPInfo(string url, string user, string passwd) throw (ConnectionExce
 }
 
 
-char* getDateStr(long time) {
+char* getDateStr(time_t time) {
     TRACE("getDateStr");
     struct tm* ctime = gmtime(&time);
     char*      str   = getDateStr(ctime);
