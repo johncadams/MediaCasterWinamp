@@ -249,7 +249,6 @@ void exceptionHandler() {
 }
 
 int init() {
-printf("Hello World!\n");
     TRACE("init");
     unexpectedHandler = set_unexpected(exceptionHandler);
     
@@ -261,7 +260,7 @@ printf("Hello World!\n");
     treeId = mla.this_id;
     
     library = new CasterLibrary(treeId);
-return 0;    
+ 
     // add our pop-up menus
     rootMenus  = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(TREE_ROOT_MENU));
     childMenus = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(TREE_CHILD_MENU));
