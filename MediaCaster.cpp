@@ -165,11 +165,12 @@ void aboutBox(HWND hwnd) {
     TRACE("aboutBox");
     char features[1024];
     strcpy(features, COPYRIGHT_MSGBOX);
+    strcat(features, "\n \n");
 #ifdef NO_THREADS
-    strcat(features, "\n\tThreads: disabled");
+    strcat(features, "\nThreads: disabled");
 #endif    
 #ifdef DO_TRACING
-    strcat(features, "\n\tLogging: enabled");
+    strcat(features, "\nLogging: enabled");
 #endif  
     MsgBox(hwnd, features, "About");
 }
