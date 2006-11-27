@@ -21,6 +21,38 @@
 #define COL_COMMENT         7
 #define COL_FILENAME        8
 
+// columns names used for searching (same as winamp)
+#define COL_ARTIST_NAME		"artist"
+#define COL_TITLE_NAME      "title"
+#define COL_ALBUM_NAME      "album"
+#define COL_LENGTH_NAME     "length"
+#define COL_TRACK_NAME      "trackno"
+#define COL_GENRE_NAME      "genre"
+#define COL_YEAR_NAME       "year"
+#define COL_COMMENT_NAME    "comment"
+#define COL_FILENAME_NAME   "filename"
+
+#define HAS_OP_NAME			"has"
+#define NOTHAS_OP_NAME		"nothas"
+#define EQ_OP_NAME			"="
+#define NOTEQ_OP_NAME		"!="
+#define BEGINS_OP_NAME		"begins"
+#define ENDS_OP_NAME		"ends"
+#define EMPTY_OP_NAME		"isempty"
+#define NOTEMPTY_OP_NAME	"isnotempty"
+
+#define HAS_OP				1
+#define NOTHAS_OP			2
+#define EQ_OP				3
+#define NOTEQ_OP			4
+#define BEGINS_OP			5
+#define ENDS_OP				6
+#define EMPTY_OP			7
+#define NOTEMPTY_OP			6
+
+#define OP_EXPR				"or"
+#define AND_EXPR			"and"	// currently implied
+
 
 extern W_ListView               listView;
 extern Configuration            configuration;

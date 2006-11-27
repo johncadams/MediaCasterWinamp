@@ -14,7 +14,7 @@ static void parseQuickSearch(char* out, const char* in) {
     TRACE("parseQuickSearch");
     int inquotes = 0;
     int neednull = 0;
-    
+
     while (*in) {
         char c = *in++;
         if (c != ' ' && c != '\t' && c != '\"') {
@@ -124,16 +124,25 @@ void MasterList::downloadFunction() throw(ConnectionException)  {
         int   cnt;
 
         while ( !stopLoading && (cnt=httpGet.readLine(buf)) > 0) {
-            char* title   = strtok(buf,  "|");
-            char* artist  = strtok(NULL, "|");
-            char* album   = strtok(NULL, "|");
-            char* genre   = strtok(NULL, "|");
-            char* year    = strtok(NULL, "|");
-            char* track   = strtok(NULL, "|");
-            char* len     = strtok(NULL, "|");
-            char* file    = strtok(NULL, "|");
-            char* comment = strtok(NULL, "|");
-
+        	int   ndx = 0;
+            char* fld[9];
+            fld[0] = buf;
+            for (char* p=buf; *p; p++) {
+            	if (*p=='|') {
+            		*p = 0;
+            		fld[++ndx] = p+1;
+            	}
+            }
+            
+			char* title   = fld[0];
+            char* artist  = fld[1];
+            char* album   = fld[2];
+            char* genre   = fld[3];
+            char* year    = fld[4];
+            char* track   = fld[5];
+            char* len     = fld[6];
+            char* file    = fld[7];
+            char* comment = fld[8];
             newSongs->addSong( new Song(artist, title, album, genre, file, len, track, year, comment) );
             
             char status[256];
@@ -307,32 +316,89 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
     TRACE("DisplayListImpl::filterFunction");
     char filteritems[300];
 
-    ::parseQuickSearch(filteritems, filter);
-
+	::parseQuickSearch(filteritems, filter);
+	
     unsigned length = 0;
     songList->clear();
     for (int i=0; i<masterList->getSize(); i++) {        
-        Song* song = masterList->getSong(i);
-        char year[32]="";
-        if (song->year < 5000 && song->year > 0) sprintf(year,"%d",song->year);
+        Song* song     = masterList->getSong(i);
+        char  year[32] = "";
+        char  len[32]  = "";
+        int   fnd      = 1;
+        int   annd     = 1;
         
-        char* p = filteritems;
-        if (*p) {
-            while (*p) {
-                // search for 'p' in the song
-                if (!::in_string(song->album  .c_str(),p) && 
-                    !::in_string(song->artist .c_str(),p) &&
-                    !::in_string(song->title  .c_str(),p) &&
-                    !::in_string(song->genre  .c_str(),p) &&
-                    !::in_string(song->comment.c_str(),p) &&
-                    !::in_string(year,p))            break;
+        sprintf(year,"%d",song->year);
+        sprintf(len, "%d",song->songlen);
+        for (char* p=filteritems; *p; p+=strlen(p)+1) {
+        	
+	        int adv = p[0]=='?';
+			if (adv) {
+				p+=strlen(p)+1; // Advance p over the '?' marker
+        		char*       field = p;	p+=strlen(p)+1;
+        		char*       opStr = p;
 
-                p+=strlen(p)+1;
-            }
-            if (*p) continue;
+        		const char* value;
+        		if      (strcmp(COL_TITLE_NAME,   field)==0) value = song->title  .c_str();
+        		else if (strcmp(COL_ARTIST_NAME,  field)==0) value = song->artist .c_str();
+        		else if (strcmp(COL_ALBUM_NAME,   field)==0) value = song->album  .c_str();
+        		else if (strcmp(COL_GENRE_NAME,   field)==0) value = song->genre  .c_str();
+        		else if (strcmp(COL_COMMENT_NAME, field)==0) value = song->comment.c_str();
+        		else if (strcmp(COL_YEAR_NAME,    field)==0) value = year;
+        		else                                         continue; // Unknown field
+        		
+        		int op;
+        		if      (stricmp(EMPTY_OP_NAME,   opStr)==0) op = EMPTY_OP;
+        		else if (stricmp(NOTEMPTY_OP_NAME,opStr)==0) op = NOTEMPTY_OP;
+        		else if (stricmp(HAS_OP_NAME,     opStr)==0) op = HAS_OP;
+        		else if (stricmp(NOTHAS_OP_NAME,  opStr)==0) op = NOTHAS_OP;
+        		else if (stricmp(EQ_OP_NAME,      opStr)==0) op = EQ_OP;
+        		else if (stricmp(NOTEQ_OP_NAME,   opStr)==0) op = NOTEQ_OP;
+        		else if (stricmp(BEGINS_OP_NAME,  opStr)==0) op = BEGINS_OP;
+        		else if (stricmp(ENDS_OP_NAME,    opStr)==0) op = ENDS_OP;
+        		else                                         continue; // Unknown operator
+           		       
+
+				if (op!=EMPTY_OP && op!=NOTEMPTY_OP) {
+					p+=strlen(p)+1;
+				}
+	
+				if (op==EMPTY_OP    && strlen(value)==0 				|| 
+				    op==NOTEMPTY_OP && strlen(value)>0					||
+                    op==HAS_OP      &&  ::in_string(value,p)			||
+	    		    op==NOTHAS_OP   && !::in_string(value,p)	     	||
+	    		    op==EQ_OP       && strcmp (value,p)==0				||
+	    		    op==NOTEQ_OP    && strcmp (value,p)!=0				||
+	    		    op==BEGINS_OP   && strncmp(value,p,strlen(p))==0	||
+	    		    op==ENDS_OP     && strcmp (value+strlen(value)-strlen(p),p)==0) {
+								
+					fnd = annd ? fnd : 1;
+	            			
+				} else {
+					fnd = annd ? 0 : fnd;
+			    }
+		
+	    	// search against everything
+			} else {
+				if (
+			    	::in_string(song->title  .c_str(),p) ||
+					::in_string(song->artist .c_str(),p) ||                 
+					::in_string(song->album  .c_str(),p) ||                     
+			        ::in_string(song->genre  .c_str(),p) ||
+			        ::in_string(song->comment.c_str(),p) ||
+			        ::in_string(year,p)) {
+			        	
+			        fnd = 1;
+			        break;
+
+		    	} else {               
+		    		fnd = 0;
+			    }
+			}
+    	}
+	    if (fnd) {
+	        length += song->songlen;
+	        songList->addSong( song->addReference() );
         }
-        length += song->songlen;
-        songList->addSong( song->addReference() );
     }
     return length;
 }
