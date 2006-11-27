@@ -324,20 +324,35 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
         Song* song     = masterList->getSong(i);
         char  year[32] = "";
         char  len[32]  = "";
-        int   fnd      = 1;
-        int   annd     = 1;
+        int   fnd      = 1;        
+        int   adv      = filteritems[0]=='?';
+        char* buf      = filteritems;
+
+        if (adv) {
+        	if (filteritems[1] == 0) buf+=strlen(buf)+1; // Advance p over the '?' marker
+        	else                     buf++;
+        }
         
         sprintf(year,"%d",song->year);
         sprintf(len, "%d",song->songlen);
-        for (char* p=filteritems; *p; p+=strlen(p)+1) {
-        	
-	        int adv = p[0]=='?';
+
+        for (char* p=buf; *p; p+=strlen(p)+1) {
+        	int andd = 1;
+        	int knot = 0;
+        	int test = 0;
+        
 			if (adv) {
-				p+=strlen(p)+1; // Advance p over the '?' marker
+				// Look for an and/or condition
+				if (stricmp(p,OP_EXPR)==0 || stricmp(p,AND_EXPR)==0 || stricmp(p,NOT_EXPR)==0) {
+					if      (stricmp(p,OP_EXPR) ==0) andd = 0;
+					else if (stricmp(p,NOT_EXPR)==0) knot = 1;
+					p+=strlen(p)+1;
+				}
+				
         		char*       field = p;	p+=strlen(p)+1;
         		char*       opStr = p;
-
         		const char* value;
+
         		if      (strcmp(COL_TITLE_NAME,   field)==0) value = song->title  .c_str();
         		else if (strcmp(COL_ARTIST_NAME,  field)==0) value = song->artist .c_str();
         		else if (strcmp(COL_ALBUM_NAME,   field)==0) value = song->album  .c_str();
@@ -359,7 +374,7 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
            		       
 
 				if (op!=EMPTY_OP && op!=NOTEMPTY_OP) {
-					p+=strlen(p)+1;
+					p+=strlen(p)+1;					
 				}
 	
 				if (op==EMPTY_OP    && strlen(value)==0 				|| 
@@ -371,11 +386,14 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
 	    		    op==BEGINS_OP   && strncmp(value,p,strlen(p))==0	||
 	    		    op==ENDS_OP     && strcmp (value+strlen(value)-strlen(p),p)==0) {
 								
-					fnd = annd ? fnd : 1;
+					test = 1;
 	            			
 				} else {
-					fnd = annd ? 0 : fnd;
+					test = 0;
 			    }
+			    
+			    if (knot) test = !test;
+			    fnd = andd ? fnd&&test : fnd||test;
 		
 	    	// search against everything
 			} else {
@@ -395,6 +413,7 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
 			    }
 			}
     	}
+    	
 	    if (fnd) {
 	        length += song->songlen;
 	        songList->addSong( song->addReference() );

@@ -51,7 +51,8 @@
 #define NOTEMPTY_OP			6
 
 #define OP_EXPR				"or"
-#define AND_EXPR			"and"	// currently implied
+#define AND_EXPR			"and"
+#define NOT_EXPR			"not"
 
 
 extern W_ListView               listView;
