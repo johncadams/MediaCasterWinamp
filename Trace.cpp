@@ -5,8 +5,9 @@
 
 void Tracer::print(const char* marker, const char* message) {
     if (!tracerFd) {
-        MessageBox(plugin.hwndLibraryParent, ERROR_OPENING_LOGFILE, "Error", MB_OK);
-        exit(0);    
+        if (!tracerWarn) MessageBox(plugin.hwndLibraryParent, ERROR_OPENING_LOGFILE, "Warning", MB_OK);
+        tracerWarn = 1;
+        return;
     }
     for (int i=0; i<tracerDepth; i++) fprintf(tracerFd, " ");            
     fprintf(tracerFd, "%s%s\n", marker, message);
