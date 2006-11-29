@@ -6,13 +6,15 @@
 
 #ifdef TRACE_GLOBALS
 #ifdef DO_TRACING
-    FILE*        tracerFd = fopen("C:/ml_mcaster.log", "w");    
+    FILE*        tracerFd    = fopen("ml_mcaster.log", "w");
 #else
-    FILE*        tracerFd;
+    FILE*        tracerFd    = NULL;
 #endif
+	int          tracerWarn  = 0;
     int          tracerDepth = 0;
 #else 
     extern FILE* tracerFd;
+    extern int   tracerWarn;
     extern int   tracerDepth;
 #endif
 
