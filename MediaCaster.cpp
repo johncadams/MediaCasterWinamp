@@ -254,6 +254,7 @@ int init() {
     unexpectedHandler = set_unexpected(exceptionHandler);
     
     configuration.load(plugin);  
+    tracePrinter.init(configuration.getLogfilePath());
     
     // add our root item to the tree
     mlAddTreeItemStruct mla = {0,(char*)PLUGIN_NAME,1,};
@@ -839,6 +840,6 @@ winampMediaLibraryPlugin plugin = {
 
 extern "C" {
     __declspec( dllexport ) winampMediaLibraryPlugin* winampGetMediaLibraryPlugin() {
-        return &plugin;
+    	return &plugin;
     }    
 };

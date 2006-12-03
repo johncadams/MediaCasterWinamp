@@ -3,46 +3,61 @@
 
 #include <stdio.h>
 
-
-#ifdef TRACE_GLOBALS
-#ifdef DO_TRACING
-    FILE*        tracerFd    = fopen("ml_mcaster.log", "w");
-#else
-    FILE*        tracerFd    = NULL;
-#endif
-	int          tracerWarn  = 0;
-    int          tracerDepth = 0;
-#else 
-    extern FILE* tracerFd;
-    extern int   tracerWarn;
-    extern int   tracerDepth;
-#endif
-
-
-
-class Tracer {
+ 
+class TracePrinter;
+ 
+class TraceFrame {
+	friend class TracePrinter;
+	
     private:
-        const char* method;
-        
+    	TracePrinter* printer;
+    	const char*   method;
+     
     protected:
-        void print(const char* marker, const char* message);
-
-    public:
-        Tracer(const char* method);        
-       ~Tracer();
-        
-        void Logger(const char* msg, int num);        
-        void Logger(const char* msg, const char* str);
+       TraceFrame(TracePrinter* printer, const char* method);
+       
+    public:         
+       ~TraceFrame();
 };
 
 
+
+class TracePrinter {
+	private:
+		FILE* fd;
+		char  tmp[4096];		
+		int   inited;
+    	int   depth;
+		
+	public:
+		TracePrinter();		
+	   ~TracePrinter();		
+		
+		void init(const char* logfile);
+		
+		TraceFrame getTraceFrame(const char* method);
+		void       print(const char* marker, const char* message);
+        void       log  (const char* msg, int num);        
+        void       log  (const char* msg, const char* str);
+        
+        void       incr();
+        void       decr();
+};
+
+
+#ifdef TRACE_GLOBALS
+	TracePrinter tracePrinter;
+#else
+    extern TracePrinter tracePrinter;
+#endif
+
 #ifdef DO_TRACING
-    #define TRACE(method)   Tracer tRaCeR(method)
-    #define LOGGER(msg,num) tRaCeR.Logger(msg,num)
-    #define THROW(ex)       tRaCeR.Logger("Throw",       ex.toString().c_str()); throw ex;
-    #define RETHROW(ex)     tRaCeR.Logger("Re-throwing", ex.toString().c_str()); throw;
-    #define IGNOREX(ex,msg) tRaCeR.Logger(msg,           ex.toString().c_str())
-    #define CATCH(ex)       tRaCeR.Logger("Catch",       ex.toString().c_str())
+    #define TRACE(method)   TraceFrame tRaCeR = tracePrinter.getTraceFrame(method)
+    #define LOGGER(msg,num) tracePrinter.log(msg,num)
+    #define THROW(ex)       tracePrinter.log("Throw",       ex.toString().c_str()); throw ex;
+    #define RETHROW(ex)     tracePrinter.log("Re-throwing", ex.toString().c_str()); throw;
+    #define IGNOREX(ex,msg) tracePrinter.log(msg,           ex.toString().c_str())
+    #define CATCH(ex)       tracePrinter.log("Catch",       ex.toString().c_str())
 #else
     #define TRACE(method)
     #define LOGGER(msg,num)

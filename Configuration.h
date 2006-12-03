@@ -20,6 +20,7 @@ class Configuration {
         char   pwrd     [  32];
         char   path     [1024];
         char   libr     [1024];
+        char   logr     [1024];
         char   play     [1024];
         char   inst     [1024];
         char   bitr     [  32];
@@ -50,6 +51,7 @@ class Configuration {
         const char* getBitrate      () { return bitr;      }
         long        getBuildDate    () { return date;      }
         int         isAutoUpdate    () { return updt;      } 
+        const char* getLogfilePath  () { return logr;      }
         const char* getLibraryPath  () { return libr;      }
         const char* getPlaylistPath () { return play;      }
         const char* getInstallerPath() { return inst;      }

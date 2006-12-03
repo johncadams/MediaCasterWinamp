@@ -17,6 +17,7 @@
 #define BITR_PROPERTY       "bitrate"
 #define PATH_PROPERTY       "path"
 #define LIBR_PROPERTY       "library"
+#define LOGR_PROPERTY       "logfile"
 #define PLAY_PROPERTY       "playlists"
 #define INST_PROPERTY       "installer"
 #define FILTER_PROPERTY     "lastfilter"
@@ -32,6 +33,7 @@
 #define DEFAULT_USER        ""
 #define DEFAULT_PWRD        ""
 #define DEFAULT_PATH        "/mcaster/"
+#define DEFAULT_LOGR		"ml_mcaster.log"
 #define DEFAULT_LIBR        "library.txt"  // These values can be absolute
 #define DEFAULT_PLAY        "playlists.txt"
 #define DEFAULT_INST        "MediaCaster.exe"
@@ -64,6 +66,7 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
     GetPrivateProfileString(CONFIG_SEC,USER_PROPERTY,  DEFAULT_USER, user,sizeof(user),iniPath);
     GetPrivateProfileString(CONFIG_SEC,PWRD_PROPERTY,  DEFAULT_PWRD, pwrd,sizeof(pwrd),iniPath);
     GetPrivateProfileString(CONFIG_SEC,PATH_PROPERTY,  DEFAULT_PATH, path,sizeof(path),iniPath);
+    GetPrivateProfileString(CONFIG_SEC,LOGR_PROPERTY,  DEFAULT_LOGR, logr,sizeof(logr),iniPath);
     GetPrivateProfileString(CONFIG_SEC,LIBR_PROPERTY,  DEFAULT_LIBR, libr,sizeof(libr),iniPath);
     GetPrivateProfileString(CONFIG_SEC,PLAY_PROPERTY,  DEFAULT_PLAY, play,sizeof(play),iniPath);
     GetPrivateProfileString(CONFIG_SEC,INST_PROPERTY,  DEFAULT_INST, inst,sizeof(inst),iniPath);
@@ -71,6 +74,12 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
     GetPrivateProfileString(CONFIG_SEC,MSG_PROPERTY,   DEFAULT_MSG,  msg, sizeof(msg), iniPath);
     
     Configuration::setWinampUserPassword();
+    
+    if (logr[0]!='/') {
+        char tmp[1024];
+        sprintf(tmp, "%s\\%s", winampDir, logr);
+        strcpy(logr, tmp);
+    }
     
     if (libr[0]!='/') {
         char tmp[1024];

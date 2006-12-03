@@ -1,42 +1,91 @@
+#include <stdlib.h>
 #include "Trace.h"
 #include "MediaCaster.h"
 #include "Messages.h"
 
 
-void Tracer::print(const char* marker, const char* message) {
-    if (!tracerFd) {
-        if (!tracerWarn) MessageBox(plugin.hwndLibraryParent, ERROR_OPENING_LOGFILE, "Warning", MB_OK);
-        tracerWarn = 1;
-        return;
-    }
-    for (int i=0; i<tracerDepth; i++) fprintf(tracerFd, " ");            
-    fprintf(tracerFd, "%s%s\n", marker, message);
-    fflush(tracerFd);   
+TracePrinter::TracePrinter() {
+	depth  = 0;
+	inited = 0;
+	tmp[0] = 0;
+}
+
+TracePrinter::~TracePrinter() {
+	if (fd) fclose(fd);
+	fd = NULL;
 }
 
 
-Tracer::Tracer(const char* method) {
-    Tracer::method = method;
-    tracerDepth++;
-    print("", method);
+void TracePrinter::init(const char* logfile) {
+	if (!inited) {
+		fd = fopen(logfile, "w");
+		if (fd) {
+			fprintf(fd, "%s", tmp);
+			
+		} else {
+			char msg[4096];
+			sprintf(msg, "%s (%s): %s", ERROR_OPENING_LOGFILE, logfile, strerror(errno));
+	        MessageBox(plugin.hwndLibraryParent, msg, "Warning", MB_OK);
+		}
+		inited = 1;
+	}
 }
 
-    
-Tracer::~Tracer() {
-    print("~", method);            
-    tracerDepth--;
+
+TraceFrame TracePrinter::getTraceFrame(const char* method) {
+	return TraceFrame(this, method);
 }
 
 
-void Tracer::Logger(const char* msg, int num) {
+void TracePrinter::print(const char* marker, const char* message) {
+	if (fd) {
+		for (int i=0; i<depth; i++) fprintf(fd, " ");            
+	    fprintf(fd, "%s%s\n", marker, message);
+	    fflush(fd);
+	    
+    } else {
+    	for (int i=0; i<depth; i++) strcat(tmp, " ");            
+	    strcat(tmp, marker);
+	    strcat(tmp, message);
+	    strcat(tmp, "\n");
+	}
+}
+
+
+void TracePrinter::log(const char* msg, int num) {
     char tmp[512];
     sprintf(tmp, "%s:%d", msg, num);
     print("-", tmp);
 }
 
 
-void Tracer::Logger(const char* msg, const char* str) {
+void TracePrinter::log(const char* msg, const char* str) {
     char tmp[512];
     sprintf(tmp, "%s:%s%s%s", msg, str?"\"":"", str?str:"<NULL>", str?"\"":"");
     print("-", tmp);
+}
+
+
+void TracePrinter::incr() {
+	depth++;
+}
+
+
+void TracePrinter::decr() {
+	depth--;
+}
+
+
+
+TraceFrame::TraceFrame(TracePrinter* printer, const char* method) {
+	TraceFrame::printer = printer;
+    TraceFrame::method  = method;
+    printer->incr();
+    printer->print("", method);
+}
+
+    
+TraceFrame::~TraceFrame() {
+    printer->print("~", method);            
+    printer->decr();
 }
