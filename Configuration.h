@@ -20,13 +20,14 @@ class Configuration {
         char   pwrd     [  32];
         char   path     [1024];
         char   libr     [1024];
-        char   logr     [1024];
+        char   logf     [1024];
         char   play     [1024];
         char   inst     [1024];
         char   bitr     [  32];
         char   msg      [1024];
         long   date;
         int    updt;
+        int    logging;
         
         const char*        playlist;
         map<string,string> filters;
@@ -50,24 +51,13 @@ class Configuration {
         const char* getPassword     () { return pwrd;      }
         const char* getBitrate      () { return bitr;      }
         long        getBuildDate    () { return date;      }
-        int         isAutoUpdate    () { return updt;      } 
-        const char* getLogfilePath  () { return logr;      }
-        const char* getLibraryPath  () { return libr;      }
-        const char* getPlaylistPath () { return play;      }
-        const char* getInstallerPath() { return inst;      }
-        const char* getWinampDir    () { return winampDir; }
-        const char* getPluginDir    () { return pluginDir; }
-        const char* getMessage      () { return msg;       }
-        
+        int         isAutoUpdate    () { return updt;      }         
+        int         isLogging       () { return logging;   } 
         int         getSortColumn   () { return Configuration::sortcols[playlist]; }
         int         getSortDirection() { return Configuration::sortdirs[playlist]; }
         const char* getFilter       ();        
-        string      getURL          (const char*);               
-        
-        void        setPlaylist     (const char*);        
-        void        setFilter       (const char*);
-        void        reverseDirection();
-        void        setSortColumn   (int);
+        const char* getMessage      () { return msg;       }
+                 
         void        setHost         (const char*);
         void        setPort         (const char*);
         void        setUser         (const char*);
@@ -75,7 +65,21 @@ class Configuration {
         void        setBitrate      (const char*);
         void        setBuildDate    (long);
         void        setAutoUpdate   (int);
+        void        setLogging      (int);
+        void        setPlaylist     (const char*);        
+        void        setSortColumn   (int);
+        void        reverseDirection();
+        void        setFilter       (const char*);
         void        resetMessage    ();
+        
+        /* The following properties are read-only and hidden */
+        const char* getLogfilePath  () { return logf;      } // filepath to ml_mcaster.log
+        const char* getLibraryPath  () { return libr;      } // relative URL to library.txt
+        const char* getPlaylistPath () { return play;      } // relative URL to playlists.txt
+        const char* getInstallerPath() { return inst;      } // relative URL to MediaCaster.exe
+        const char* getWinampDir    () { return winampDir; } // installation dir
+        const char* getPluginDir    () { return pluginDir; } // Plugins dir
+        string      getURL          (const char*);           // convienence URL builder (not streaming)
 };
 
 #endif /*CONFIG_H_*/

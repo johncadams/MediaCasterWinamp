@@ -17,7 +17,8 @@
 #define BITR_PROPERTY       "bitrate"
 #define PATH_PROPERTY       "path"
 #define LIBR_PROPERTY       "library"
-#define LOGR_PROPERTY       "logfile"
+#define LOGF_PROPERTY       "logfile"
+#define LOGGING_PROPERTY    "logging"
 #define PLAY_PROPERTY       "playlists"
 #define INST_PROPERTY       "installer"
 #define FILTER_PROPERTY     "lastfilter"
@@ -33,7 +34,8 @@
 #define DEFAULT_USER        ""
 #define DEFAULT_PWRD        ""
 #define DEFAULT_PATH        "/mcaster/"
-#define DEFAULT_LOGR		"ml_mcaster.log"
+#define DEFAULT_LOGGING		0
+#define DEFAULT_LOGF		"ml_mcaster.log"
 #define DEFAULT_LIBR        "library.txt"  // These values can be absolute
 #define DEFAULT_PLAY        "playlists.txt"
 #define DEFAULT_INST        "MediaCaster.exe"
@@ -58,27 +60,31 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
     sprintf(pluginDir, "%s\\Plugins",  winampDir);
     sprintf(iniPath,   "%s\\\\%s.ini", pluginDir, CONFIG_SEC);
         
-    updt    = GetPrivateProfileInt(CONFIG_SEC,UPDATE_PROPERTY,  DEFAULT_UPDATE,iniPath);
-    date    = GetPrivateProfileInt(CONFIG_SEC,DATE_PROPERTY,    0,             iniPath);
+
+	logging = GetPrivateProfileInt(CONFIG_SEC,LOGGING_PROPERTY, DEFAULT_LOGGING,iniPath);
+    updt    = GetPrivateProfileInt(CONFIG_SEC,UPDATE_PROPERTY,  DEFAULT_UPDATE, iniPath);
+    date    = GetPrivateProfileInt(CONFIG_SEC,DATE_PROPERTY,    0,              iniPath);
         
     GetPrivateProfileString(CONFIG_SEC,HOST_PROPERTY,  DEFAULT_HOST, host,sizeof(host),iniPath);
     GetPrivateProfileString(CONFIG_SEC,PORT_PROPERTY,  DEFAULT_PORT, port,sizeof(port),iniPath);
     GetPrivateProfileString(CONFIG_SEC,USER_PROPERTY,  DEFAULT_USER, user,sizeof(user),iniPath);
     GetPrivateProfileString(CONFIG_SEC,PWRD_PROPERTY,  DEFAULT_PWRD, pwrd,sizeof(pwrd),iniPath);
     GetPrivateProfileString(CONFIG_SEC,PATH_PROPERTY,  DEFAULT_PATH, path,sizeof(path),iniPath);
-    GetPrivateProfileString(CONFIG_SEC,LOGR_PROPERTY,  DEFAULT_LOGR, logr,sizeof(logr),iniPath);
+    GetPrivateProfileString(CONFIG_SEC,LOGF_PROPERTY,  DEFAULT_LOGF, logf,sizeof(logf),iniPath);
     GetPrivateProfileString(CONFIG_SEC,LIBR_PROPERTY,  DEFAULT_LIBR, libr,sizeof(libr),iniPath);
     GetPrivateProfileString(CONFIG_SEC,PLAY_PROPERTY,  DEFAULT_PLAY, play,sizeof(play),iniPath);
     GetPrivateProfileString(CONFIG_SEC,INST_PROPERTY,  DEFAULT_INST, inst,sizeof(inst),iniPath);
     GetPrivateProfileString(CONFIG_SEC,BITR_PROPERTY,  DEFAULT_BITR, bitr,sizeof(bitr),iniPath);
     GetPrivateProfileString(CONFIG_SEC,MSG_PROPERTY,   DEFAULT_MSG,  msg, sizeof(msg), iniPath);
     
+    // This forces things to be written out as to avoid having default values hidden
     Configuration::setWinampUserPassword();
+    Configuration::setLogging(logging);
     
-    if (logr[0]!='/') {
+    if (logf[0]!='/') {
         char tmp[1024];
-        sprintf(tmp, "%s\\%s", winampDir, logr);
-        strcpy(logr, tmp);
+        sprintf(tmp, "%s\\%s", winampDir, logf);
+        strcpy(logf, tmp);
     }
     
     if (libr[0]!='/') {
@@ -119,7 +125,9 @@ string Configuration::getURL(const char* file) {
     string port = Configuration::getPort()[0]?Configuration::getPort():"80";
     string base = string("http://") +Configuration::getHost() +":" +port;
     if (file[0]!='/') base += path;
-    return base+file;
+    base += file;
+    LOGGER("URL", base.c_str());
+    return base;
 }
 
 
@@ -210,6 +218,13 @@ void Configuration::setAutoUpdate(int updt) {
     TRACE("Configuration::setAutoUpdate");
     Configuration::updt = updt;
     WritePrivateProfileString(CONFIG_SEC, UPDATE_PROPERTY, updt?"1":"0", iniPath);
+}
+
+
+void Configuration::setLogging(int logging) {
+    TRACE("Configuration::setLogging");
+    Configuration::logging = logging;
+    WritePrivateProfileString(CONFIG_SEC, LOGGING_PROPERTY, logging?"1":"0", iniPath);
 }
 
 

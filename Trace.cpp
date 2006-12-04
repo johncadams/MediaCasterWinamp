@@ -17,7 +17,7 @@ TracePrinter::~TracePrinter() {
 
 
 void TracePrinter::init(const char* logfile) {
-	if (!inited) {
+	if (!inited && configuration.isLogging()) {
 		fd = fopen(logfile, "w");
 		if (fd) {
 			fprintf(fd, "%s", tmp);
@@ -26,9 +26,9 @@ void TracePrinter::init(const char* logfile) {
 			char msg[4096];
 			sprintf(msg, "%s (%s): %s", ERROR_OPENING_LOGFILE, logfile, strerror(errno));
 	        MessageBox(plugin.hwndLibraryParent, msg, "Warning", MB_OK);
-		}
-		inited = 1;
+		}		
 	}
+	inited = 1;
 }
 
 
@@ -43,7 +43,7 @@ void TracePrinter::print(const char* marker, const char* message) {
 	    fprintf(fd, "%s%s\n", marker, message);
 	    fflush(fd);
 	    
-    } else {
+    } else if (!inited) {
     	for (int i=0; i<depth; i++) strcat(tmp, " ");            
 	    strcat(tmp, marker);
 	    strcat(tmp, message);
