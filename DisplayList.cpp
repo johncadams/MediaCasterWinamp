@@ -179,7 +179,7 @@ void MasterList::downloadFunction() throw(ConnectionException)  {
 
 DisplayListImpl::DisplayListImpl(int treeId) {
     TRACE("DisplayListImpl::DisplayListImpl");
-    DisplayListImpl::name        = strdup(PLUGIN_NAME);
+    DisplayListImpl::name        = strdup("ROOT");
     DisplayListImpl::masterList  = new MasterList(name);
     DisplayListImpl::songList    = new SongList();
     DisplayListImpl::treeId      = treeId;
@@ -324,6 +324,7 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
         Song* song     = masterList->getSong(i);
         char  year[32] = "";
         char  len[32]  = "";
+        char  track[32]= "";
         int   fnd      = 1;        
         int   adv      = filteritems[0]=='?';
         char* buf      = filteritems;
@@ -333,8 +334,13 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
         	else                     buf++;
         }
         
-        sprintf(year,"%d",song->year);
-        sprintf(len, "%d",song->songlen);
+        sprintf(year, "%d",song->year);
+        sprintf(len,  "%d",song->songlen);
+        sprintf(track,"%d",song->track);
+        
+        if (song->year   ==0) year [0] = '\0';
+        if (song->songlen==0) len  [0] = '\0';
+        if (song->track  ==0) track[0] = '\0';
 
         for (char* p=buf; *p; p+=strlen(p)+1) {
         	int andd = 1;
@@ -343,9 +349,14 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
         
 			if (adv) {
 				// Look for an and/or condition
-				if (stricmp(p,OP_EXPR)==0 || stricmp(p,AND_EXPR)==0 || stricmp(p,NOT_EXPR)==0) {
-					if      (stricmp(p,OP_EXPR) ==0) andd = 0;
-					else if (stricmp(p,NOT_EXPR)==0) knot = 1;
+				if (stricmp(p,OR_EXPR1) ==0 || stricmp(p,OR_EXPR2) ==0 || stricmp(p,OR_EXPR3) ==0 ||
+				    stricmp(p,AND_EXPR1)==0 || stricmp(p,AND_EXPR2)==0 || stricmp(p,AND_EXPR3)==0 ) {
+					if (stricmp(p,OR_EXPR1) ==0 || stricmp(p,OR_EXPR2) ==0 || stricmp(p,OR_EXPR3)==0) andd = 0;
+					p+=strlen(p)+1;
+				}
+				
+				if (stricmp(p,NOT_EXPR1)==0 || stricmp(p,NOT_EXPR2)==0) {
+					if (stricmp(p,NOT_EXPR1)==0 || stricmp(p,NOT_EXPR2)==0) knot = 1;
 					p+=strlen(p)+1;
 				}
 				
@@ -359,14 +370,21 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
         		else if (strcmp(COL_GENRE_NAME,   field)==0) value = song->genre  .c_str();
         		else if (strcmp(COL_COMMENT_NAME, field)==0) value = song->comment.c_str();
         		else if (strcmp(COL_YEAR_NAME,    field)==0) value = year;
+        		else if (strcmp(COL_TRACK_NAME,   field)==0) value = track;
+        		else if (strcmp(COL_LENGTH_NAME,  field)==0) value = len;
         		else                                         continue; // Unknown field
-        		
+
         		int op;
         		if      (stricmp(EMPTY_OP_NAME,   opStr)==0) op = EMPTY_OP;
         		else if (stricmp(NOTEMPTY_OP_NAME,opStr)==0) op = NOTEMPTY_OP;
         		else if (stricmp(HAS_OP_NAME,     opStr)==0) op = HAS_OP;
         		else if (stricmp(NOTHAS_OP_NAME,  opStr)==0) op = NOTHAS_OP;
-        		else if (stricmp(EQ_OP_NAME,      opStr)==0) op = EQ_OP;
+        		else if (stricmp(EQ_OP_NAME1,     opStr)==0) op = EQ_OP;
+        		else if (stricmp(EQ_OP_NAME2,     opStr)==0) op = EQ_OP;
+        		else if (stricmp(GT_OP_NAME,      opStr)==0) op = GT_OP;
+        		else if (stricmp(LT_OP_NAME,      opStr)==0) op = LT_OP;
+        		else if (stricmp(GE_OP_NAME,      opStr)==0) op = GE_OP;
+        		else if (stricmp(LE_OP_NAME,      opStr)==0) op = LE_OP;
         		else if (stricmp(NOTEQ_OP_NAME,   opStr)==0) op = NOTEQ_OP;
         		else if (stricmp(BEGINS_OP_NAME,  opStr)==0) op = BEGINS_OP;
         		else if (stricmp(ENDS_OP_NAME,    opStr)==0) op = ENDS_OP;
@@ -383,6 +401,10 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
 	    		    op==NOTHAS_OP   && !::in_string(value,p)	     	||
 	    		    op==EQ_OP       && strcmp (value,p)==0				||
 	    		    op==NOTEQ_OP    && strcmp (value,p)!=0				||
+	    		    op==GT_OP       && strcmp (value,p)>0				||
+	    		    op==LT_OP       && strcmp (value,p)<0				||
+	    		    op==GE_OP       && strcmp (value,p)>=0				||
+	    		    op==LE_OP       && strcmp (value,p)<=0				||
 	    		    op==BEGINS_OP   && strncmp(value,p,strlen(p))==0	||
 	    		    op==ENDS_OP     && strcmp (value+strlen(value)-strlen(p),p)==0) {
 								

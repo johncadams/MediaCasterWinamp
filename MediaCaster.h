@@ -34,8 +34,13 @@
 
 #define HAS_OP_NAME			"has"
 #define NOTHAS_OP_NAME		"nothas"
-#define EQ_OP_NAME			"="
+#define EQ_OP_NAME1			"="
+#define EQ_OP_NAME2			"=="
 #define NOTEQ_OP_NAME		"!="
+#define GT_OP_NAME			">"
+#define LT_OP_NAME			"<"
+#define GE_OP_NAME			">="
+#define LE_OP_NAME			"<="
 #define BEGINS_OP_NAME		"begins"
 #define ENDS_OP_NAME		"ends"
 #define EMPTY_OP_NAME		"isempty"
@@ -45,14 +50,23 @@
 #define NOTHAS_OP			2
 #define EQ_OP				3
 #define NOTEQ_OP			4
-#define BEGINS_OP			5
-#define ENDS_OP				6
-#define EMPTY_OP			7
-#define NOTEMPTY_OP			6
+#define GT_OP				5
+#define LT_OP				6
+#define GE_OP				7
+#define LE_OP				8
+#define BEGINS_OP			9
+#define ENDS_OP				10
+#define EMPTY_OP			11
+#define NOTEMPTY_OP			12
 
-#define OP_EXPR				"or"
-#define AND_EXPR			"and"
-#define NOT_EXPR			"not"
+#define OR_EXPR1			"or"
+#define OR_EXPR2			"|"
+#define OR_EXPR3			"||"
+#define AND_EXPR1			"and"
+#define AND_EXPR2			"&"
+#define AND_EXPR3			"&&"
+#define NOT_EXPR1			"not"
+#define NOT_EXPR2			"!"
 
 
 extern W_ListView               listView;
