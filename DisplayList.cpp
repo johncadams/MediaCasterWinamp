@@ -316,6 +316,7 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
     TRACE("DisplayListImpl::filterFunction");
     char filteritems[300];
 
+	LOGGER("filter", filter);
 	::parseQuickSearch(filteritems, filter);
 	
     unsigned length = 0;
@@ -420,18 +421,15 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
 	    	// search against everything
 			} else {
 				if (
-			    	::in_string(song->title  .c_str(),p) ||
-					::in_string(song->artist .c_str(),p) ||                 
-					::in_string(song->album  .c_str(),p) ||                     
-			        ::in_string(song->genre  .c_str(),p) ||
-			        ::in_string(song->comment.c_str(),p) ||
-			        ::in_string(year,p)) {
+			    	!::in_string(song->title  .c_str(),p) &&
+					!::in_string(song->artist .c_str(),p) &&                 
+					!::in_string(song->album  .c_str(),p) &&                     
+			        !::in_string(song->genre  .c_str(),p) &&
+			        !::in_string(song->comment.c_str(),p) &&
+			        !::in_string(year,p)) {
 			        	
-			        fnd = 1;
+			        fnd = 0;
 			        break;
-
-		    	} else {               
-		    		fnd = 0;
 			    }
 			}
     	}
