@@ -5,7 +5,8 @@
                           
 
 /* General error/status messages */
-#define CONN_PROBLEM_STATUS1    "Connection FAILURE"
+#define ERROR_OPENING_LOGFILE   "Error opening log file (%s): %s"
+#define CONN_PROBLEM_STATUS     "Connection FAILURE"
 #define CONN_PROBLEM_MSGBOX     "There was a problem connecting to the Media Caster server\n "\
                                 "\n"\
                                 "Cause: %s"
@@ -51,7 +52,6 @@
 
 
 /* Tracer messages */
-#define ERROR_OPENING_LOGFILE   "Error opening log file"
 #define COPYRIGHT_MSGBOX        PLUGIN_FULLNAME "\n \n" COPYRIGHT
 
 

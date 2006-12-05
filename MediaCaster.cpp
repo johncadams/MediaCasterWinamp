@@ -180,13 +180,21 @@ void aboutBox(HWND hwnd) {
 }
 
 
+void logfileProblemBox(HWND hwnd, const char* reason) {
+	TRACE("logfileProblemBox");
+	char msg[1024];
+	sprintf(msg, ERROR_OPENING_LOGFILE, configuration.getLogfilePath(), reason);
+    ::MsgBox(hwnd, msg, "Warning");
+}
+
+
 void connectionProblemBox(HWND hwnd, const char* reason) {
     TRACE("connectionProblemBox");
     
     char msg[1024];
     sprintf(msg, CONN_PROBLEM_MSGBOX, reason);
     
-    ::setStatusMessage(hwnd, CONN_PROBLEM_STATUS1);
+    ::setStatusMessage(hwnd, CONN_PROBLEM_STATUS);
     ::MsgBox(hwnd, msg, "Error");
     ::configDialog(hwnd);
 }

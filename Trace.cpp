@@ -23,9 +23,7 @@ void TracePrinter::init(const char* logfile) {
 			fprintf(fd, "%s", tmp);
 			
 		} else {
-			char msg[4096];
-			sprintf(msg, "%s (%s): %s", ERROR_OPENING_LOGFILE, logfile, strerror(errno));
-	        MessageBox(plugin.hwndLibraryParent, msg, "Warning", MB_OK);
+			logfileProblemBox(plugin.hwndLibraryParent, strerror(errno));
 		}		
 	}
 	inited = 1;
