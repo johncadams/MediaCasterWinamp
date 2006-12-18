@@ -12,24 +12,87 @@
 using namespace std;
 
 
-SearchPlayList::SearchPlayList(const char* name, const char* desc, const char* prefilter, DisplayList& displayList): 
+PlayList::PlayList(const char* name, const char* desc, DisplayList& displayList) :
+	DisplayListImpl(name, displayList), origMasterList(NULL) { 
+	TRACE("PlayList::PlayList");
+}
+
+
+PlayList::~PlayList() {
+    TRACE("PlayList::~PlayList");    
+    if (origMasterList != NULL) {
+    	masterList->deleteReference();
+    	masterList = origMasterList;
+    	origMasterList = NULL;
+    }
+}
+
+
+void PlayList::setSongList(SongList* songList) {
+	TRACE("PlayList::setSongLost");
+	if (origMasterList == NULL) {
+		origMasterList = masterList;
+	} else {
+		// We're being asked to re-associate a songList, probably shouldn't do this
+		delete masterList->songList;
+    	masterList->deleteReference();
+	}
+	
+    masterList = new MasterList(name);    
+	masterList->songList = songList;
+}
+
+
+void PlayList::abort() const {
+    TRACE("PlayList::abort");
+    if (origMasterList) origMasterList->abort();
+    else                DisplayListImpl::abort();
+}
+
+
+int PlayList::isAborted() const {
+//  TRACE("PlayList::abort");
+    if (origMasterList) return origMasterList->isAborted();
+    else                return DisplayListImpl::isAborted();
+}
+
+
+HWND PlayList::getHwnd() const {
+//  TRACE("PlayList::getHwnd");
+    if (origMasterList) return origMasterList->getHwnd();
+    else                return DisplayListImpl::getHwnd();
+}
+
+
+void PlayList::setHwnd(HWND hwnd) {
+    TRACE("PlayList::setHwnd");
+    if (origMasterList) origMasterList->setHwnd(hwnd);
+    else                DisplayListImpl::setHwnd(hwnd);
+}
+
+            
+            
+SearchPlayList::SearchPlayList(const char* name, const char* desc, const char* search, DisplayList& displayList): 
     PlayList(name, desc, displayList) {
-    TRACE("SearchPlayList::SearchPlayList");
-    SearchPlayList::prefilter = strdup(prefilter);
-}
-
-
-SearchPlayList::~SearchPlayList() {
-    TRACE("SearchPlayList::~SearchPlayList");
-    delete prefilter;
-}
-
-
-unsigned SearchPlayList::filterFunction(const char* filter) {
-    TRACE("SearchPlayList::filterFunction");
-    char newfilter[512];
-    sprintf(newfilter, "\"%s\" %s", prefilter, filter);
-    return PlayList::filterFunction(newfilter);
+    TRACE("SearchPlayList::SearchPlayList");    
+    
+    SongList* newSongs = new SongList();
+    
+    filterFunction(search);
+    LOGGER("Search", search);
+    for (int i=0; i<getSongList()->getSize(); i++) {
+		const char* mp3  = getSong(i)->file.c_str();
+		Song*       song = masterList->getSong(mp3);
+		if (song) {
+            LOGGER("Adding", mp3);
+            song->addReference();
+            newSongs->addSong(song);
+        } else {
+            LOGGER("Missing", mp3);
+        }
+	}
+	
+    setSongList(newSongs);
 }
 
 
@@ -37,17 +100,13 @@ unsigned SearchPlayList::filterFunction(const char* filter) {
 M3uPlayList::M3uPlayList(const char* name, const char* desc, const char* m3u, DisplayList& displayList):
     PlayList(name, desc, displayList) {
     TRACE("M3uPlayList::M3uPlayList");
-    M3uPlayList::m3u      = strdup(m3u);
-    M3uPlayList::rootList = masterList;
-    PlayList::masterList  = new MasterList(name);
+    M3uPlayList::m3u = strdup(m3u);
 }
 
 
 M3uPlayList::~M3uPlayList() {
     TRACE("M3uPlayList::~M3uPlayList");
-    delete masterList; // We should be the only one
     delete m3u;
-    masterList = rootList;
 }
 
 
@@ -76,18 +135,18 @@ void M3uPlayList::downloadFunction() throw(ConnectionException) {
 
         char* buf;
                 
-        httpGet.readLine(buf);                    
-        if (!buf || strcmp(buf,"#EXTM3U")!=0) throw ConnectionException("Improper M3U file");
+        httpGet.readLine(buf);   
+        if (!buf || strcmp(buf,"#EXTM3U")!=0) throw(ConnectionException("Improper M3U file"));
         delete buf;
         
         while ( !isAborted() && httpGet.readLine(buf) ) {            
-            if (strncmp(buf,"#EXTINF:",8)!=0) throw ConnectionException("Improper M3U file");
+            if (strncmp(buf,"#EXTINF:",8)!=0) throw(ConnectionException("Improper M3U file"));
             delete buf;
             
             httpGet.readLine(buf);
             if (!buf) throw ConnectionException("Improper M3U file");
             
-            Song* song = rootList->getSong(buf);
+            Song* song = masterList->getSong(buf);
             if (song) {
                 LOGGER("Adding", song->file.c_str());
                 song->addReference();
@@ -101,49 +160,21 @@ void M3uPlayList::downloadFunction() throw(ConnectionException) {
 
     } catch (HTTPAuthenticationException& ex) {
         // Have to do it this way or this exception isn't rethrown correctly
+        CATCH(ex);
         delete newSongs;
-        masterList->clear();
         RETHROW(ex);
 
     } catch (ConnectionException& ex) {
+    	CATCH(ex);
         delete newSongs;
-        masterList->clear();
         RETHROW(ex);
     }
 
     if (isAborted()) {
         delete newSongs;
     } else {
-        masterList->songList->clear();
-        delete masterList->songList;
-        masterList->songList = newSongs;
+    	setSongList(newSongs);
     }
-    
-    LOGGER("size", masterList->getSize());
-}
-
-
-void M3uPlayList::abort() const {
-    TRACE("M3uPlayList::abort");
-    rootList->abort();
-}
-
-
-int M3uPlayList::isAborted() const {
-//  TRACE("M3uPlayList::abort");
-    return rootList->isAborted();
-}
-
-
-HWND M3uPlayList::getHwnd() const {
-//  TRACE("M3uPlayList::getHwnd");
-    return rootList->getHwnd();
-}
-
-
-void M3uPlayList::setHwnd(HWND hwnd) {
-    TRACE("M3uPlayList::setHwnd");
-    rootList->setHwnd(hwnd);
 }
 
 
@@ -163,10 +194,10 @@ PlayLists::~PlayLists() {
 }
 
 
-void PlayLists::download() throw(ConnectionException) {
-    TRACE("PlayLists::download");
+static C_ItemList* downloadFunction(DisplayList& rootList) throw(ConnectionException) {
+    TRACE("downloadFunction");
     
-    if (configuration.getHost()[0]=='\0') return;
+    if (configuration.getHost()[0]=='\0') return NULL;
     
     C_ItemList* newLists = new C_ItemList();
         
@@ -188,28 +219,18 @@ void PlayLists::download() throw(ConnectionException) {
             const char* desc  = strtok(NULL, "|");            
                  
             PlayList* playList = NULL;
-            if (strcmp("search",type)==0) {
-                if (!playList) {
-                	playList = new SearchPlayList(title, desc, data, rootList);
-                } else {
-                	playList = getPlayList(title);
-                	playList->addReference();
-                }
+            if (strcmp("search",type)==0 || strcmp("search2",type)==0) {
+                playList = new SearchPlayList(title, desc, data, rootList);
                 
             } else if (strcmp("m3u",type)==0) {
-                if (!playList) {
-                	playList = new M3uPlayList(title, desc, data, rootList);
-                } else {
-                	playList = getPlayList(title);
-                	playList->addReference();
-                }
+                playList = new M3uPlayList(title, desc, data, rootList);                
                 playList->download();
                 
             } else if (type[0]=='#') {
                 // Commented out, ignored
                 
             } else {
-                newFeatureBox(hwnd, UNKNOWN_PLAYLIST_TYPE, warned);    
+                newFeatureBox(rootList.getHwnd(), UNKNOWN_PLAYLIST_TYPE, warned);    
             }
             
             if (playList) {
@@ -221,10 +242,12 @@ void PlayLists::download() throw(ConnectionException) {
                 
     } catch (HTTPAuthenticationException& ex) {
         // If we don't catch this this way it gets reported as HTTPException
+        CATCH(ex);
         delete newLists;
         RETHROW(ex);
         
     } catch (HTTPException& ex) {
+    	CATCH(ex);
         delete newLists;
         if (ex.getErrorCode() == 404) {
             IGNOREX(ex, "File not required");
@@ -233,9 +256,27 @@ void PlayLists::download() throw(ConnectionException) {
         }
     }
     
-    clear();
-    delete playLists;
-    playLists = newLists;
+    return newLists;
+}
+
+void PlayLists::download() throw(ConnectionException) {
+	TRACE("PlayLists::download");
+	C_ItemList* newLists = NULL;
+	try {
+		newLists = ::downloadFunction(rootList);
+		clear();
+    	delete playLists;
+    	playLists = newLists;
+    	
+	} catch (HTTPAuthenticationException& ex) {
+		CATCH(ex);
+		if (newLists) delete newLists;
+        RETHROW(ex);    
+    } catch (HTTPException& ex) {
+    	CATCH(ex);
+        if (newLists) delete newLists;
+        RETHROW(ex);
+    }
 }
 
 

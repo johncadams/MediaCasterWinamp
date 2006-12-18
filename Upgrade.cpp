@@ -138,6 +138,7 @@ const char* Upgrade::getIsAvailableStatus() throw() {
 	        return UPTODATE_STATUS;
 	    }
     } catch (ConnectionException& ex) {
+    	CATCH(ex);
     	return CONN_PROBLEM_STATUS2;        
     }
 }

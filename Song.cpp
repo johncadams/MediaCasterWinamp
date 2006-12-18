@@ -37,10 +37,9 @@ Song* Song::addReference() {
 
 void Song::deleteReference() {
     TRACE("Song::deleteReference");
-    if (--refCount==0) {
-        LOGGER("refCount",refCount);
-        delete this;
-    }
+    refCount--;
+    LOGGER("refCount",refCount);
+    if (refCount==0) delete this;    
 }
  
         

@@ -63,8 +63,11 @@ MasterList::MasterList(const char* name) {
 
 MasterList::~MasterList() {
     TRACE("MasterList::~MasterList");
+LOGGER("songList", songList?"Good":"BAD");
     delete songList;
+LOGGER("name", name?"Good":"BAD");
     delete name;
+LOGGER("socket", "");
     JNL::close_socketlib();
 }
 
@@ -154,11 +157,13 @@ void MasterList::downloadFunction() throw(ConnectionException)  {
 
     } catch (HTTPAuthenticationException& ex) {
         // Have to do it this way or this exception isn't rethrown correctly
+        CATCH(ex);
         delete newSongs;
         songList->clear();
         RETHROW(ex);
 
     } catch (ConnectionException& ex) {
+    	CATCH(ex);
         delete newSongs;
         songList->clear();
         RETHROW(ex);
@@ -239,6 +244,12 @@ void DisplayListImpl::deleteReference() {
 const char* DisplayListImpl::getName() const {
     TRACE("DisplayListImpl::getName");
     return DisplayListImpl::name;
+}
+
+
+const SongList* DisplayListImpl::getSongList() const {
+//  TRACE("DisplayListImpl::getSongList");
+    return songList;
 }
 
 
@@ -426,7 +437,9 @@ unsigned DisplayListImpl::filterFunction(const char* filter) {
 					!::in_string(song->album  .c_str(),p) &&                     
 			        !::in_string(song->genre  .c_str(),p) &&
 			        !::in_string(song->comment.c_str(),p) &&
-			        !::in_string(year,p)) {
+			        !::in_string(year,                 p) &&
+			        !::in_string(track,                p) &&
+			        !::in_string(len,                  p)) {
 			        	
 			        fnd = 0;
 			        break;

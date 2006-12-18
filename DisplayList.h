@@ -8,7 +8,7 @@
 class M3uPlayList;
 
 class MasterList {
-    friend class M3uPlayList;
+    friend class PlayList;   
     
     private:
         char*        name;
@@ -69,7 +69,9 @@ class DisplayList {
 
 
 class DisplayListImpl: public DisplayList {
+    friend class PlayList;
     friend class M3uPlayList;
+    friend class SearchPlayList;
     
     private:
         char*               name;
@@ -80,10 +82,11 @@ class DisplayListImpl: public DisplayList {
         int                 refCount;
                 
     protected:
-        virtual MasterList* referenceMasterList();
-        virtual void        downloadFunction() throw(ConnectionException);
-        virtual void        sortFunction();
-        virtual unsigned    filterFunction(const char*);
+        virtual MasterList*     referenceMasterList();
+        virtual void            downloadFunction() throw(ConnectionException);
+        virtual void            sortFunction();
+        virtual unsigned        filterFunction(const char*);
+        virtual const SongList* getSongList() const;
 
     public:
         DisplayListImpl(int);

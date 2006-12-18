@@ -33,7 +33,6 @@ using namespace std;
 
 #include "MediaCaster.h"
 #include "SongList.h"
-#include "CasterLibrary.h"
 #include "Configuration.h"
 #include "defaultres.h"
 
@@ -65,7 +64,6 @@ static unexpected_handler unexpectedHandler;
 // Globals
 Configuration             configuration;
 W_ListView                listView;
-
 
     
 // These have to agree with Apache::MP3::Resample!
@@ -261,7 +259,7 @@ void exceptionHandler() {
 	unexpectedHandler();
 }
 
-int init() {
+static int init() {
     TRACE("init");
     unexpectedHandler = set_unexpected(exceptionHandler);
     
@@ -297,7 +295,7 @@ int init() {
 }
 
 
-void quit() {
+static void quit() {
     TRACE("quit");
     delete library;    
     set_unexpected(unexpectedHandler);
@@ -806,7 +804,7 @@ static int onTreeItemClick(int selTreeId, int action, HWND hwndParent) {
 }
 
 
-int pluginMessageProc(int message_type, int param1, int param2, int param3) {
+static int pluginMessageProc(int message_type, int param1, int param2, int param3) {
     // check for any global messages here
     if (message_type == ML_MSG_CONFIG) {
         TRACE("pluginMessageProc/ML_MSG_CONFIG");
@@ -841,17 +839,22 @@ int pluginMessageProc(int message_type, int param1, int param2, int param3) {
 }
 
 
-winampMediaLibraryPlugin plugin = {
-	MLHDR_VER,
-	PLUGIN_FULLNAME,
-	init,
-	quit,
-    pluginMessageProc,
-};
 
+static CasterLibrary* getLibrary() {
+	return library;
+}	
 
-extern "C" {
-    __declspec( dllexport ) winampMediaLibraryPlugin* winampGetMediaLibraryPlugin() {
-    	return &plugin;
-    }    
-};
+MediaCasterMediaLibraryPlugin::MediaCasterMediaLibraryPlugin() {
+	MediaCasterMediaLibraryPlugin::version     = MLHDR_VER;
+	MediaCasterMediaLibraryPlugin::description = PLUGIN_FULLNAME;
+	MediaCasterMediaLibraryPlugin::init        = ::init;
+	MediaCasterMediaLibraryPlugin::quit        = ::quit;
+	MediaCasterMediaLibraryPlugin::MessageProc = ::pluginMessageProc;
+	MediaCasterMediaLibraryPlugin::getLibrary  = ::getLibrary;
+}
+
+MediaCasterMediaLibraryPlugin plugin;
+
+winampMediaLibraryPlugin* winampGetMediaLibraryPlugin() {
+    	return (winampMediaLibraryPlugin*)&plugin;
+}

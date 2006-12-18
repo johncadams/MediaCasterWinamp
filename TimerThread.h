@@ -26,6 +26,7 @@ class TimerThread {
        void          callProcedure()            { procedure(args);  }
        int           isRunning()                { return running;   }
        void          setStopped()               { running = 0;      }
+       unsigned long getId()                    { return id;        }
 };
 
 #endif /*TIMERTHREAD_H_*/

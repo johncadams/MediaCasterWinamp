@@ -5,6 +5,7 @@
 #include "gen_ml/ml.h"
 #include "gen_ml/listview.h"
 #include "Configuration.h"
+#include "CasterLibrary.h"
 
 #define PLUGIN_NAME         "Media Caster"
 #define PLUGIN_FULLNAME     PLUGIN_NAME" v"MC_VERSION
@@ -69,9 +70,20 @@
 #define NOT_EXPR2			"!"
 
 
-extern W_ListView               listView;
-extern Configuration            configuration;
-extern winampMediaLibraryPlugin plugin;
+class MediaCasterMediaLibraryPlugin: public winampMediaLibraryPlugin {
+	public:
+		MediaCasterMediaLibraryPlugin();
+		CasterLibrary* (*getLibrary)(void);
+};
+
+
+extern "C" {
+    __declspec( dllexport ) winampMediaLibraryPlugin* winampGetMediaLibraryPlugin();
+};
+
+extern W_ListView                    listView;
+extern Configuration                 configuration;
+extern MediaCasterMediaLibraryPlugin plugin;
 
 
 extern void authDialog              (HWND);
