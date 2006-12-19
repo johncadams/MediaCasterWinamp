@@ -115,22 +115,15 @@ void CasterLibrary::download() {
     callDownload(this);
 #else
     if (downloadThread == NULL) {
-LOGGER("HERE",1);
         downloadThread = new TimerThread(0, (Procedure)::callDownload, this);
-LOGGER("HERE",2);
     }
     if (downloadThread->isRunning()) {
-LOGGER("HERE",3);
         // We are in the thread so don't try to start another
         LOGGER("THREAD", "reusing");
-LOGGER("HERE",4);
         callDownload(this);
-LOGGER("HERE",5);
     } else {
         LOGGER("THREAD", "spawning");
-LOGGER("HERE",6);
-        downloadThread->start();    
-LOGGER("HERE",7);
+        downloadThread->start();
     }
 #endif                 
 }
