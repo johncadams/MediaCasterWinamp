@@ -33,13 +33,10 @@ void PlayList::setSongList(SongList* songList) {
 	if (origMasterList == NULL) {
 		origMasterList = masterList;
 	} else {
-		// We're being asked to re-associate a songList, probably shouldn't do this
-		delete masterList->songList;
     	masterList->deleteReference();
 	}
 	
-    masterList = new MasterList(name);    
-	masterList->songList = songList;
+    masterList = new MasterList(getName(),songList);
 }
 
 

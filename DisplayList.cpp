@@ -52,10 +52,10 @@ static int in_string(const char* string, const char* substring) {
 
 
 
-MasterList::MasterList(const char* name) {
+MasterList::MasterList(const char* name, SongList* songList) {
     TRACE("MasterList::MasterList");
     MasterList::name           = strdup(name);
-    MasterList::songList       = new SongList();
+    MasterList::songList       = songList;
     MasterList::refCount       = 1;
     JNL::open_socketlib();
 }
@@ -185,7 +185,7 @@ void MasterList::downloadFunction() throw(ConnectionException)  {
 DisplayListImpl::DisplayListImpl(int treeId) {
     TRACE("DisplayListImpl::DisplayListImpl");
     DisplayListImpl::name        = strdup("ROOT");
-    DisplayListImpl::masterList  = new MasterList(name);
+    DisplayListImpl::masterList  = new MasterList(name, new SongList());
     DisplayListImpl::songList    = new SongList();
     DisplayListImpl::treeId      = treeId;
     DisplayListImpl::parentId    = 0;

@@ -8,8 +8,6 @@
 class M3uPlayList;
 
 class MasterList {
-    friend class PlayList;   
-    
     private:
         char*        name;
         SongList*    songList;
@@ -17,14 +15,14 @@ class MasterList {
         int          refCount;
         int          stopLoading;
                 
-        virtual ~MasterList();
-
     protected:
+   		virtual     ~MasterList();
         void         downloadFunction() throw(ConnectionException);
 
     public:
-        MasterList(const char*);
+        MasterList(const char*, SongList*);
         MasterList*  addReference();
+        
         void         deleteReference();
         
         void         clear();
@@ -69,19 +67,16 @@ class DisplayList {
 
 
 class DisplayListImpl: public DisplayList {
-    friend class PlayList;
-    friend class M3uPlayList;
-    friend class SearchPlayList;
-    
     private:
-        char*               name;
-        MasterList*         masterList;
+        char*               name;        
         SongList*           songList;
         int                 treeId;
         int                 parentId;
         int                 refCount;
                 
     protected:
+    	MasterList*         masterList; // Playlist swaps this around
+    
         virtual MasterList*     referenceMasterList();
         virtual void            downloadFunction() throw(ConnectionException);
         virtual void            sortFunction();
