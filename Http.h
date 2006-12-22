@@ -9,11 +9,6 @@
 using namespace std;
 
 
-long  getDate   (const char*);
-char* getDateStr(struct tm*);
-char* getDateStr(long);
-
-
 class ConnectionException: public exception {
     private:
         const char* errstr;
@@ -63,25 +58,36 @@ class HTTPAuthenticationException: public HTTPException {
 
 
 class HTTPMethod: public JNL_HTTPGet {
+	private: 
+	    int    reply;
+		FILE*  fptr;
+		string file;
+	
     protected:
         string method;
-        string url;                        
+        string url;
+        int    len;
         
     public:
         HTTPMethod(string method, string url, string user="", string passwd="");
+       	virtual ~HTTPMethod();
         
-        void addHeader(string header);              
-        void connect  ()                     throw (ConnectionException);
-        int  read     (void* buf, int len)   throw (HTTPException);
-        int  readLine (char*& buf)           throw (HTTPException);
+        void   addHeader(string header);              
+        void   connect  ()                     throw (ConnectionException);
+        int    read     (void* buf, int len)   throw (HTTPException);
+        int    readLine (char*& buf)           throw (HTTPException);
         
-        int  contentLen()   { return JNL_HTTPGet::content_length(); }
+        int    contentLen();
+        string contentType();
+        long   lastModified();
+        string lastModifiedStr();
 };
 
 
 class HTTPGet: public HTTPMethod {
     public:
-        HTTPGet(string url, string user="", string passwd=""):  HTTPMethod("GET", url, user, passwd) {}
+        HTTPGet(string url, string user="", string passwd=""):
+        	HTTPMethod("GET", url, user, passwd) {}
 };
 
 
@@ -89,10 +95,11 @@ class HTTPInfo: HTTPMethod {
     public:
         HTTPInfo(string url, string user="", string passwd="") throw (ConnectionException);
         
-        int    contentLen  ()    { return HTTPMethod::contentLen();                }
-        string contentType ()    { return JNL_HTTPGet::getheader("Content-Type");  } 
-        long   lastModified()    { return getDate(lastModifiedStr().c_str() );     }
-        string lastModifiedStr() { return JNL_HTTPGet::getheader("Last-Modified"); }
+        // Promote these to public
+        int    contentLen()			{ return HTTPMethod::contentLen();		}
+        string contentType()		{ return HTTPMethod::contentType();		}
+        long   lastModified()		{ return HTTPMethod::lastModified();	}
+        string lastModifiedStr()	{ return HTTPMethod::lastModifiedStr();	}
 };
 
 #endif
