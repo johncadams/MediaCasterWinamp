@@ -42,6 +42,7 @@
 #define DEFAULT_BITR        "stream=1;bitrate=56%20kbps"
 #define DEFAULT_UPDATE      1
 #define DEFAULT_MSG         ""
+#define DEFAULT_CACHE		"ml_mcaster_cache\\"
 
 /*
 Configuration::Configuration() {
@@ -113,7 +114,7 @@ string Configuration::getURL(const char* file) const {
 string Configuration::getCacheFile(const char* file) const {
     TRACE("Configuration::getCacheFile");
     string base = Configuration::getPluginDir();
-    base += "cache\\";
+    base += DEFAULT_CACHE;
     base += file; // These files (as currently being used) look absolute but are relative
     LOGGER("FILE", base.c_str());
     return base;

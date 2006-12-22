@@ -112,6 +112,9 @@ Section ""
     ; Clear the error message
     DeleteINIStr $INSTDIR\Plugins\ml_mcaster.ini ml_mcaster message
     
+    ; Create the cache directory
+    CreateDirectory $INSTDIR\Plugins\ml_mcaster_cache
+    
   
   startWinamp:
     ; prompt user, and if they select yes run winamp
@@ -138,8 +141,10 @@ Section "Uninstall"
   ; Remove the files and uninstaller
   Delete $INSTDIR\Plugins\ml_mcaster.dll
   Delete $INSTDIR\Plugins\ml_mcaster.ini
+  Delete $INSTDIR\Plugins\ml_mcaster_cache
   Delete $INSTDIR\mcaster_uninstall.exe
   Delete $INSTDIR\ml_caster.log
+  
     
   ; Delete the <= 1.1 trace log
   Delete C:\ml_caster.log
