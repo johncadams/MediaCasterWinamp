@@ -4,12 +4,11 @@
 #include <windows.h>
 
 
-typedef unsigned long (WINAPI* function_type)(void*);
 typedef void (*Procedure)(...);
 
 class TimerThread {
     private:
-        unsigned long id;
+        unsigned      thread;
         unsigned long wait;
         Procedure     procedure;
         void*         args;
@@ -26,7 +25,7 @@ class TimerThread {
        void          callProcedure()            { procedure(args);  }
        int           isRunning()                { return running;   }
        void          setStopped()               { running = 0;      }
-       unsigned long getId()                    { return id;        }
+       unsigned      getThread()				{ return thread;	}
 };
 
 #endif /*TIMERTHREAD_H_*/
