@@ -63,11 +63,8 @@ MasterList::MasterList(const char* name, SongList* songList) {
 
 MasterList::~MasterList() {
     TRACE("MasterList::~MasterList");
-LOGGER("songList", songList?"Good":"BAD");
     delete songList;
-LOGGER("name", name?"Good":"BAD");
     delete name;
-LOGGER("socket", "");
     JNL::close_socketlib();
 }
 
@@ -114,7 +111,7 @@ void MasterList::downloadFunction() throw(ConnectionException)  {
     
     SongList* newSongs      = new SongList();
     string    masterListUrl = configuration.getURL( configuration.getLibraryPath() );
-    
+
     setStatusMessage(hwnd, CONNECTING);
     HTTPGet httpGet(masterListUrl, configuration.getUser(), configuration.getPassword());
     httpGet.addHeader("User-Agent: MediaCaster (Winamp)");
