@@ -178,10 +178,10 @@ void aboutBox(HWND hwnd) {
 }
 
 
-void logfileProblemBox(HWND hwnd, const char* reason) {
-	TRACE("logfileProblemBox");
+void fileIoProblemBox(HWND hwnd, const char* file, const char* reason) {
+	TRACE("fileIoProblemBox");
 	char msg[1024];
-	sprintf(msg, ERROR_OPENING_LOGFILE, configuration.getLogfilePath(), reason);
+	sprintf(msg, ERROR_OPENING_FILE, file, reason);
     ::MsgBox(hwnd, msg, "Warning");
 }
 

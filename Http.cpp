@@ -235,7 +235,7 @@ int HTTPMethod::read(void* bytes, int len) throw (HTTPException) {
 			LOGGER("Reading cache", file.c_str());
 			fptr = fopen(file.c_str(), "r");
 			if (fptr==NULL) {
-				LOGGER("Error", strerror(errno));
+				fileIoProblemBox(plugin.hwndLibraryParent, file.c_str(), strerror(errno));
 				exit(0);
 			}
 		}
@@ -262,7 +262,7 @@ int HTTPMethod::read(void* bytes, int len) throw (HTTPException) {
                 	LOGGER("Writing cache", file.c_str());
                 	fptr = fopen(file.c_str(), "w");
                 	if (fptr==NULL) {
-						LOGGER("Error", strerror(errno));
+						fileIoProblemBox(plugin.hwndLibraryParent, file.c_str(), strerror(errno));
 						exit(0);
 					}
                 }
@@ -287,7 +287,7 @@ int HTTPMethod::readLine(char*& buf) throw (HTTPException) {
 			LOGGER("Reading cache", file.c_str());
 			fptr = fopen(file.c_str(), "r");
 			if (fptr==NULL) {
-				LOGGER("Error", strerror(errno));
+				fileIoProblemBox(plugin.hwndLibraryParent, file.c_str(), strerror(errno));
 				exit(0);
 			}
 		}
@@ -327,7 +327,7 @@ int HTTPMethod::readLine(char*& buf) throw (HTTPException) {
                         	LOGGER("Writing cache", file.c_str());
                         	fptr = fopen(file.c_str(), "w");
                         	if (fptr==NULL) {
-								LOGGER("Error", strerror(errno));
+								fileIoProblemBox(plugin.hwndLibraryParent, file.c_str(), strerror(errno));
 								exit(0);
 							}
                         }

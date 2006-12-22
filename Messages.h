@@ -5,7 +5,7 @@
                           
 
 /* General error/status messages */
-#define ERROR_OPENING_LOGFILE   "Error opening log file (%s): %s"
+#define ERROR_OPENING_FILE      "Error opening file (%s): %s"
 #define CONN_PROBLEM_STATUS     "Connection FAILURE"
 #define CONN_PROBLEM_MSGBOX     "There was a problem connecting to the Media Caster server\n "\
                                 "\n"\

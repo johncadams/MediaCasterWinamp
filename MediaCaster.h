@@ -89,7 +89,7 @@ extern MediaCasterMediaLibraryPlugin plugin;
 extern void authDialog              (HWND);
 extern void configDialog            (HWND);
 extern void aboutBox                (HWND);
-extern void logfileProblemBox       (HWND, const char*);
+extern void fileIoProblemBox        (HWND, const char*, const char*);
 extern void connectionProblemBox    (HWND, const char*);
 extern void newFeatureBox           (HWND, const char*, int&);
 extern void setStatusMessage        (HWND, const char*);

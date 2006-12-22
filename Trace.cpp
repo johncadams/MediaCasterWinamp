@@ -23,7 +23,7 @@ void TracePrinter::init(const char* logfile) {
 			fprintf(fd, "%s", tmp);
 			
 		} else {
-			logfileProblemBox(plugin.hwndLibraryParent, strerror(errno));
+			fileIoProblemBox(plugin.hwndLibraryParent, logfile, strerror(errno));
 		}		
 	}
 	inited = 1;
