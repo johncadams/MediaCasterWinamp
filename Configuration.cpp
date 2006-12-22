@@ -57,8 +57,9 @@ Configuration::~Configuration() {
 void Configuration::load(winampMediaLibraryPlugin plugin) {
     TRACE("Configuration::load");
     strcpy(winampDir, (char*)SendMessage(plugin.hwndWinampParent,WM_WA_IPC,0,IPC_GETINIDIRECTORY));
-    sprintf(pluginDir, "%s\\Plugins",  winampDir);
-    sprintf(iniPath,   "%s\\\\%s.ini", pluginDir, CONFIG_SEC);
+    strcat(winampDir, "\\");
+    sprintf(pluginDir, "%sPlugins\\",  winampDir);
+    sprintf(iniPath,   "%s%s.ini", pluginDir, CONFIG_SEC);
         
 
 	logging = GetPrivateProfileInt(CONFIG_SEC,LOGGING_PROPERTY, DEFAULT_LOGGING,iniPath);
@@ -87,24 +88,6 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
         strcpy(logf, tmp);
     }
     
-    if (libr[0]!='/') {
-        char tmp[1024];
-        sprintf(tmp, "%s%s", path, libr);
-        strcpy(libr, tmp);
-    }
-
-    if (play[0]!='/') {
-        char tmp[1024];
-        sprintf(tmp, "%s%s", path, play);
-        strcpy(play, tmp);
-    }
-    
-    if (inst[0]!='/') {
-        char tmp[1024];
-        sprintf(tmp, "%s%s", path, inst);
-        strcpy(inst, tmp);
-    }
-    
     playlist = PLUGIN_NAME;
     
     // Get the playlist specific resources
@@ -113,20 +96,26 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
     filters [playlist] = strdup(filter);
     sortcols[playlist] = GetPrivateProfileInt(playlist, DATE_PROPERTY, 0, iniPath);
     sortdirs[playlist] = GetPrivateProfileInt(playlist, DATE_PROPERTY, 0, iniPath);
-    
-    LOGGER(LIBR_PROPERTY, libr);
-    LOGGER(PLAY_PROPERTY, play);
-    LOGGER(INST_PROPERTY, inst);
 }
 
 
-string Configuration::getURL(const char* file) {
+string Configuration::getURL(const char* file) const {
     TRACE("Configuration::getURL");
     string port = Configuration::getPort()[0]?Configuration::getPort():"80";
     string base = string("http://") +Configuration::getHost() +":" +port;
     if (file[0]!='/') base += path;
     base += file;
     LOGGER("URL", base.c_str());
+    return base;
+}
+
+
+string Configuration::getCacheFile(const char* file) const {
+    TRACE("Configuration::getCacheFile");
+    string base = Configuration::getPluginDir();
+    base += "cache\\";
+    base += file; // These files (as currently being used) look absolute but are relative
+    LOGGER("FILE", base.c_str());
     return base;
 }
 
@@ -142,12 +131,6 @@ void Configuration::setFilter(const char* filter) {
     Configuration::filters.erase(playlist);
     Configuration::filters[playlist] = filter;
     WritePrivateProfileString(playlist, FILTER_PROPERTY, filter, iniPath);
-}
-
-
-const char* Configuration::getFilter() {
-    TRACE("Configuration::getFilter");
-    return Configuration::filters[playlist].c_str();
 }
 
 
