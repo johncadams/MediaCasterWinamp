@@ -209,32 +209,32 @@ static C_ItemList* downloadFunction(DisplayList& rootList) throw(ConnectionExcep
         char* buf;
         int   warned = 0;
         while ( httpGet.readLine(buf) ) {
-            
-            const char* title = strtok(buf,  "|");
-            const char* type  = strtok(NULL, "|");
-            const char* data  = strtok(NULL, "|");
-            const char* desc  = strtok(NULL, "|");            
-                 
-            PlayList* playList = NULL;
-            if (strcmp("search",type)==0 || strcmp("search2",type)==0) {
-                playList = new SearchPlayList(title, desc, data, rootList);
-                
-            } else if (strcmp("m3u",type)==0) {
-                playList = new M3uPlayList(title, desc, data, rootList);                
-                playList->download();
-                
-            } else if (type[0]=='#') {
-                // Commented out, ignored
-                
-            } else {
-                newFeatureBox(rootList.getHwnd(), UNKNOWN_PLAYLIST_TYPE, warned);    
+            if (strlen(buf)>0) {
+	            const char* title = strtok(buf,  "|");
+	            const char* type  = strtok(NULL, "|");
+	            const char* data  = strtok(NULL, "|");
+	            const char* desc  = strtok(NULL, "|");            
+	                 
+	            if (title && type && data && title[0]!='#' && type[0]!='#') {
+		            PlayList* playList = NULL;
+		            if (strcmp("search",type)==0 || strcmp("search2",type)==0) {
+		                playList = new SearchPlayList(title, desc, data, rootList);
+		                
+		            } else if (strcmp("m3u",type)==0) {
+		                playList = new M3uPlayList(title, desc, data, rootList);                
+		                playList->download();
+		                
+		            } else {
+		                newFeatureBox(rootList.getHwnd(), UNKNOWN_PLAYLIST_TYPE, warned);    
+		            }
+		            
+		            if (playList) {
+		            	LOGGER("Adding playlist", title);
+		            	newLists->Add(playList);                
+		            }
+		            delete buf;
+	            }
             }
-            
-            if (playList) {
-            	LOGGER("Adding playlist", title);
-            	newLists->Add(playList);                
-            }
-            delete buf;
         }
                 
     } catch (HTTPAuthenticationException& ex) {

@@ -111,13 +111,20 @@ string Configuration::getURL(const char* file) const {
 }
 
 
+string Configuration::getCacheDir() const {
+	TRACE("Configuration::getCacheDir");
+	string pluginDir = Configuration::getPluginDir();
+    pluginDir += DEFAULT_CACHE;
+    return pluginDir;
+}
+
+
 string Configuration::getCacheFile(const char* file) const {
     TRACE("Configuration::getCacheFile");
-    string base = Configuration::getPluginDir();
-    base += DEFAULT_CACHE;
-    base += file; // These files (as currently being used) look absolute but are relative
-    LOGGER("FILE", base.c_str());
-    return base;
+    string cacheDir = Configuration::getCacheDir();
+    cacheDir += file; // These files (as currently being used) look absolute but are relative
+    LOGGER("FILE", cacheDir.c_str());
+    return cacheDir;
 }
 
 

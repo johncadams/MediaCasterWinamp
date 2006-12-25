@@ -56,6 +56,13 @@ class HTTPAuthenticationException: public HTTPException {
 };
 
 
+class HTTPMethodNotAllowedException: public HTTPException { 
+    public:
+        HTTPMethodNotAllowedException(const char* errstr): HTTPException(405,errstr) 
+        { }
+};
+
+
 
 class HTTPMethod: public JNL_HTTPGet {
 	private: 
@@ -75,7 +82,7 @@ class HTTPMethod: public JNL_HTTPGet {
         void   addHeader(string header);              
         void   connect  ()                     throw (ConnectionException);
         int    read     (void* buf, int len)   throw (HTTPException);
-        int    readLine (char*& buf)           throw (HTTPException);
+        char*  readLine (char*& buf)           throw (HTTPException);
         
         int    contentLen();
         string contentType();
@@ -88,6 +95,14 @@ class HTTPGet: public HTTPMethod {
     public:
         HTTPGet(string url, string user="", string passwd=""):
         	HTTPMethod("GET", url, user, passwd) {}
+};
+
+
+class HTTPPut: public HTTPMethod {
+    public:
+        HTTPPut(string url, string user="", string passwd="") throw (ConnectionException);
+        
+        int write(const void* bytes, int len);
 };
 
 

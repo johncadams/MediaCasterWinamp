@@ -79,6 +79,7 @@ class Configuration {
         const char* getInstallerPath() const { return inst;      }	// relative URL to MediaCaster.exe
         const char* getWinampDir    () const { return winampDir; }	// installation dir
         const char* getPluginDir    () const { return pluginDir; }	// Plugins dir
+        string      getCacheDir     () const;
         string      getURL          (const char*) const; 			// convienence URL builder (not streaming)
         string      getCacheFile    (const char*) const; 			// convienence file builder
 };

@@ -121,9 +121,9 @@ void MasterList::downloadFunction() throw(ConnectionException)  {
         httpGet.connect();
         char* buf;
         int   total = 0;
-        int   cnt;
 
-        while ( !stopLoading && (cnt=httpGet.readLine(buf)) > 0) {
+        while ( !stopLoading && httpGet.readLine(buf)) {
+        	int   cnt = strlen(buf);
         	int   ndx = 0;
             char* fld[9];
             fld[0] = buf;

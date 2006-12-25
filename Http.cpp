@@ -8,6 +8,7 @@
 #define OK					200
 #define FILE_UPTODATE		304
 #define FILE_NOT_FOUND		401
+#define METHOD_NOT_ALLOWED	405
 
 #define IF_MODIFIED_SINCE	"If-Modified-Since"
 #define CONTENT_TYPE		"Content-Type"
@@ -53,8 +54,10 @@ HTTPMethod::HTTPMethod(string method, string url, string username, string passwo
 }
         
         
-HTTPMethod::~HTTPMethod() 
-{ }
+HTTPMethod::~HTTPMethod() {
+	if (fptr) fclose(fptr);
+	fptr = NULL;
+}
         
         
 void HTTPMethod::addHeader(string header) {
@@ -109,6 +112,9 @@ void HTTPMethod::connect() throw (ConnectionException) {
                     if (hdr) sscanf(hdr, "Basic %s", realm);
                     THROW(HTTPAuthenticationException(JNL_HTTPGet::geterrorstr()));
                 }
+                case METHOD_NOT_ALLOWED:
+                	THROW(HTTPMethodNotAllowedException(JNL_HTTPGet::geterrorstr()));
+                	
                 case 0:
                     THROW(ConnectionException(JNL_HTTPGet::geterrorstr()));
                                     
@@ -120,9 +126,10 @@ void HTTPMethod::connect() throw (ConnectionException) {
         switch (JNL_HTTPGet::get_status()) {
             case -1: {
             	reply = JNL_HTTPGet::getreplycode();
-            	if (reply==FILE_UPTODATE)  { return; }
-                if (reply==FILE_NOT_FOUND) { THROW(HTTPAuthenticationException(JNL_HTTPGet::geterrorstr())); }
-                else                       { THROW(HTTPException(reply,JNL_HTTPGet::geterrorstr())); }
+            	if (reply==FILE_UPTODATE)      { return; }
+                if (reply==FILE_NOT_FOUND)     { THROW(HTTPAuthenticationException(JNL_HTTPGet::geterrorstr())); }
+                if (reply==METHOD_NOT_ALLOWED) { THROW(HTTPMethodNotAllowedException(JNL_HTTPGet::geterrorstr())); }
+                else                           { THROW(HTTPException(reply,JNL_HTTPGet::geterrorstr())); }
             }
             case  0:    Sleep(1);       break;      // still connecting            
             case  1:    return;                     // reading content            
@@ -164,7 +171,7 @@ int HTTPMethod::read(void* bytes, int len) throw (HTTPException) {
                 if (fptr==NULL) {
                 	TRACE("HTTPMethod::read");
                 	LOGGER("Writing cache", file.c_str());
-                	fptr = fopen(file.c_str(), "w");
+                	fptr = fopen(file.c_str(), "wb");
                 	if (fptr==NULL) {
 						fileIoProblemBox(plugin.hwndLibraryParent, file.c_str(), strerror(errno));
 						exit(0);
@@ -184,7 +191,7 @@ int HTTPMethod::read(void* bytes, int len) throw (HTTPException) {
 }
 
 
-int HTTPMethod::readLine(char*& buf) throw (HTTPException) {
+char* HTTPMethod::readLine(char*& buf) throw (HTTPException) {
     if (reply==FILE_UPTODATE) {
 		if (fptr==NULL) {
 			TRACE("HTTPMethod::read");
@@ -198,13 +205,15 @@ int HTTPMethod::readLine(char*& buf) throw (HTTPException) {
 		char tmp[2048];
 		
 		if (!fgets(tmp, sizeof(tmp), fptr)) {
-			fclose(fptr);
+			TRACE("HTTPMethod::read");
+            LOGGER("Closing", file.c_str());
+			if (fptr) fclose(fptr);
 			buf = NULL;
 			fptr = NULL;
-			return 0;
+			return NULL;
 		} else {
 			buf = strdup(tmp);
-			return strlen(tmp);
+			return buf;
 		}
 	}
 	
@@ -229,36 +238,51 @@ int HTTPMethod::readLine(char*& buf) throw (HTTPException) {
                         if (fptr==NULL) {
                         	TRACE("HTTPMethod::read");
                         	LOGGER("Writing cache", file.c_str());
-                        	fptr = fopen(file.c_str(), "w");
+                        	fptr = fopen(file.c_str(), "wb");
                         	if (fptr==NULL) {
 								fileIoProblemBox(plugin.hwndLibraryParent, file.c_str(), strerror(errno));
 								exit(0);
 							}
                         }
                         fwrite(buf, num, 1, fptr);
-                        fflush(fptr);
+                        
+                        if (buf[0]==EOF) break;  // This assumed an EOF is on its own line
+                        
                         buf[--num] = 0;  // snip off the newline/EOF                        
                         if (buf[num-1]=='\r') buf[--num] = 0; // snip off the return
-                        return num;
+                        return buf;
                     }
                 }
                 delete buf;
+                buf = NULL;
             }       
         }
         
         if (running == 1) {
+        	TRACE("HTTPMethod::read");
+            LOGGER("Closing", file.c_str());
         	if (fptr) fclose(fptr);
         	fptr = NULL;
-        	buf = NULL;
-        	return 0;  // We're done
+        	return NULL;  // We're done
         }
     }
 }
 
 
 
+HTTPPut::HTTPPut(string url, string user, string passwd) throw (ConnectionException) :
+    HTTPMethod("PUT", url, user, passwd) {
+}
+
+
+int HTTPPut::write(const void* bytes, int len) {
+	return m_con->send_bytes(bytes, len);
+}
+
+
+
 HTTPInfo::HTTPInfo(string url, string user, string passwd) throw (ConnectionException) :
     HTTPMethod("HEAD", url, user, passwd) {
-    TRACE("HTTPMethod::HTTPInfo");
+    TRACE("HTTPInfo::HTTPInfo");
     HTTPMethod::connect();
 }

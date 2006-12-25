@@ -383,6 +383,7 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                 }
                 case CONFIG_REFRESH_BTN: {
                     TRACE("configDialogCallback::DLG_REFRESH");
+                    library->clearCache();
                     library->download();
                     break;                            
                 }    
@@ -625,6 +626,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
             }
             case MAIN_REFRESH_BTN: {
                 TRACE("mainPageCallback/DLG_REFRESH2");
+                library->clearCache();
                 library->download();
                 break;
             }

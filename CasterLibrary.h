@@ -11,15 +11,15 @@ class CasterLibrary {
     friend void callDownload(CasterLibrary*);
     
     private:
-        int                upgradeAvail;
-        HWND               hwnd;
-        DisplayList*       displayList;
-        PlayLists*         playLists;
-        DisplayList*       currentList;
-        Upgrade*           upgrade;
+       int                 upgradeAvail;
+       HWND                hwnd;
+       DisplayList*        displayList;
+       PlayLists*          playLists;
+       DisplayList*        currentList;
+       Upgrade*            upgrade;
         
     protected:
-        virtual void       downloadFunction();
+       virtual void        downloadFunction();
         
     public:
 	   CasterLibrary(int);
@@ -29,6 +29,7 @@ class CasterLibrary {
        
        virtual void        clear();
        virtual void        sort();
+       virtual void        clearCache();
        virtual void        download();
        virtual void        display();
        virtual void        abort();

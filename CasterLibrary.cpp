@@ -1,4 +1,6 @@
-
+#include <sys/types.h>
+#include <dirent.h>
+     
 #include "CasterLibrary.h"
 #include "MediaCaster.h"
 #include "TimerThread.h"
@@ -105,6 +107,27 @@ const Song* CasterLibrary::getSong(int index) {
 void CasterLibrary::drop(POINT point) const {
     TRACE("CasterLibrary::drop");
     currentList->drop(point);                  
+}
+
+
+void CasterLibrary::clearCache() {
+	TRACE("CasterLibrary::clearCache");
+	string  dir  = configuration.getCacheDir();
+	DIR*    dirp = opendir(dir.c_str());
+	
+	if (dirp) {
+		for (dirent* dp=readdir(dirp); dp; dp=readdir(dirp)) {
+			string file = dp->d_name;
+			if (file[0]!='.') {
+				string path = dir+file;
+				LOGGER("Removing", path.c_str());
+				if (remove(path.c_str())!=0) {
+					LOGGER("ERROR", strerror(errno));
+				}
+			}
+		}
+	}
+	closedir(dirp);
 }
 
 
