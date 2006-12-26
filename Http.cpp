@@ -98,13 +98,18 @@ void HTTPMethod::connect() throw (ConnectionException) {
     LOGGER("URL", url.c_str());
     JNL_HTTPGet::connect(url.c_str(), 0, (char*)method.c_str());
     
-    while (true) {
-        int running = JNL_HTTPGet::run();                  
-        if (running == -1) {
-        	reply = JNL_HTTPGet::getreplycode();
-            switch (reply) {
+    int has_printed_headers = 0;
+	int has_printed_reply   = 0;
+    while (true) {	
+    	int running = JNL_HTTPGet::run();
+    	
+	    if (running < 0) {
+	    	reply = JNL_HTTPGet::getreplycode();
+	    	LOGGER("ERROR", JNL_HTTPGet::geterrorstr());
+	    	LOGGER("reply", JNL_HTTPGet::getreply());
+			switch (reply) {
             	case FILE_UPTODATE: {
-            		break;
+            		return;
             	}
                 case FILE_NOT_FOUND: {
                     char realm[64];
@@ -115,27 +120,35 @@ void HTTPMethod::connect() throw (ConnectionException) {
                 case METHOD_NOT_ALLOWED:
                 	THROW(HTTPMethodNotAllowedException(JNL_HTTPGet::geterrorstr()));
                 	
-                case 0:
-                    THROW(ConnectionException(JNL_HTTPGet::geterrorstr()));
-                                    
                 default:
                     THROW(HTTPException(JNL_HTTPGet::getreplycode(),JNL_HTTPGet::geterrorstr()));
             }
-        }
+	    }
+	    
+	    if (JNL_HTTPGet::get_status()>0) { // '1|'2' = reading headers|content
+			if (!has_printed_reply) {
+	        	has_printed_reply = 1;
+	        	LOGGER("reply", JNL_HTTPGet::getreply());
+	      	}
+	      
+	      	if (JNL_HTTPGet::get_status()==2) { // '2' = reading content	        	
+	        	if (!has_printed_headers) {
+	          		has_printed_headers = 1;
+	          		char *p=JNL_HTTPGet::getallheaders();
+	          		while (p&&*p) {
+	          			LOGGER("headers", p);
+	            		p+=strlen(p)+1;
+	          		}
+	        	}
+	        	return;
+	      	}
+	    }
 
-        switch (JNL_HTTPGet::get_status()) {
-            case -1: {
-            	reply = JNL_HTTPGet::getreplycode();
-            	if (reply==FILE_UPTODATE)      { return; }
-                if (reply==FILE_NOT_FOUND)     { THROW(HTTPAuthenticationException(JNL_HTTPGet::geterrorstr())); }
-                if (reply==METHOD_NOT_ALLOWED) { THROW(HTTPMethodNotAllowedException(JNL_HTTPGet::geterrorstr())); }
-                else                           { THROW(HTTPException(reply,JNL_HTTPGet::geterrorstr())); }
-            }
-            case  0:    Sleep(1);       break;      // still connecting            
-            case  1:    return;                     // reading content            
-            case  2:    return;                     // reading headers
-        }
-    }
+	    if (running == 1) { // 1 means connection closed
+			LOGGER("DONE", "");
+	      	break;
+		}
+ 	}
 }
 
 
@@ -231,10 +244,10 @@ char* HTTPMethod::readLine(char*& buf) throw (HTTPException) {
                 JNL_HTTPGet::peek_bytes(buf,len);
                 for (int i=0; i<len; i++) {
                     char chr = buf[i];
-                    if (chr=='\n' || chr==EOF) {
+                    if (chr=='\n' || chr==EOF) {  // Windows: '\n\r'
                         memset(buf, 0, len);
                         int num = JNL_HTTPGet::get_bytes(buf, i+1);
-                        
+
                         if (fptr==NULL) {
                         	TRACE("HTTPMethod::read");
                         	LOGGER("Writing cache", file.c_str());
@@ -246,9 +259,8 @@ char* HTTPMethod::readLine(char*& buf) throw (HTTPException) {
                         }
                         fwrite(buf, num, 1, fptr);
                         
-                        if (buf[0]==EOF) break;  // This assumed an EOF is on its own line
-                        
-                        buf[--num] = 0;  // snip off the newline/EOF                        
+                        if (buf[0]==EOF) break;  // This assumed an EOF is on its own line          
+                        buf[--num] = 0;  // snip off the newline/EOF
                         if (buf[num-1]=='\r') buf[--num] = 0; // snip off the return
                         return buf;
                     }
