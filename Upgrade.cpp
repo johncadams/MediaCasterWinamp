@@ -7,7 +7,7 @@ using namespace std;
 
 #include "Upgrade.h"
 #include "Trace.h"
-#include "HTTPGet.h"
+#include "Http.h"
 #include "Process.h"
 #include "MediaCaster.h"
 #include "Messages.h"

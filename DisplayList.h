@@ -1,7 +1,7 @@
 #ifndef DISPLAYLIST_H
 #define DISPLAYLIST_H
 
-#include "HTTPGet.h"
+#include "Http.h"
 #include "Song.h"
 #include "SongList.h"
 

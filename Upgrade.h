@@ -1,7 +1,7 @@
 #ifndef UPGRADE_H_
 #define UPGRADE_H_
 
-#include "HTTPGet.h"
+#include "Http.h"
 
 
 class Upgrade {

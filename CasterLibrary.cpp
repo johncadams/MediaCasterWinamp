@@ -4,7 +4,7 @@
 #include "CasterLibrary.h"
 #include "MediaCaster.h"
 #include "TimerThread.h"
-#include "HTTPGet.h"
+#include "Http.h"
 #include "Trace.h"
 
 /*

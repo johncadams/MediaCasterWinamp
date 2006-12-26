@@ -4,7 +4,7 @@
 
 #include "MediaCaster.h"
 #include "DisplayList.h"
-#include "HTTPGet.h"
+#include "Http.h"
 #include "Process.h"
 #include "Trace.h"
 #include "Messages.h"

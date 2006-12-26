@@ -1,4 +1,4 @@
-#include "HTTPGet.h"
+#include "Http.h"
 #include "jnetlib/webserver.h"
 #include "MediaCaster.h"
 #include "Trace.h"

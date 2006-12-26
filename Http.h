@@ -1,6 +1,6 @@
 
-#ifndef GETTER_H
-#define GETTER_H
+#ifndef HTTP_H
+#define HTTP_H
 
 #include <string>
 #include <exception>
