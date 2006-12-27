@@ -75,6 +75,7 @@ int HTTPMethod::contentLen() {
 	return len;
 }
 
+
 string HTTPMethod::contentType() {
 	TRACE("HTTPMethod::contentType");
 	return JNL_HTTPGet::getheader(CONTENT_TYPE);
@@ -226,6 +227,7 @@ char* HTTPMethod::readLine(char*& buf) throw (HTTPException) {
 			return NULL;
 		} else {
 			buf = strdup(tmp);
+			strtok(buf, "\n\r");
 			return buf;
 		}
 	}
