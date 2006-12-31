@@ -31,42 +31,36 @@ void Upgrade::downloadFunction() throw (ConnectionException) {
     setStatusMessage(hwnd, CONNECTING);    
     httpGet.connect();    
     
-    string path = string(tempnam("", "installer_MediaCaster")) + ".exe";
-    FILE*  fd   = fopen(path.c_str(), "wb");
-    if (fd) {
-        while( (cnt=httpGet.read(bytes, sizeof(bytes))) ) {
-            total += cnt;
-            char status[256];
-            sprintf(status, INSTALLER_DOWNLOAD, int( float(total*100./httpGet.contentLen())) );
-            setStatusMessage(hwnd, status);
-            fwrite(bytes, sizeof(char), cnt, fd);
-        }
-        
-        fclose(fd);
+    // Just kick the reader to generate the cached copy
+    while( (cnt=httpGet.read(bytes, sizeof(bytes))) ) {
+        total += cnt;
+        char status[256];
+        sprintf(status, INSTALLER_DOWNLOAD, int( float(total*100./httpGet.contentLen())) );
+        setStatusMessage(hwnd, status);         
+    }
+    
 //      Don't really need to do this since the installer closes winamp        
 //      SendMessage(plugin.hwndLibraryParent, WM_ML_IPC, (WPARAM)&plugin, ML_IPC_REMOVE_PLUGIN);
-        
-        string cmdline = path +" /S /D=" +configuration.getWinampDir();
-        int    rtn     = execForegroundProcess(cmdline.c_str());
+    
+    string path    = httpGet.getCachedFile();
+    string cmdline = path +" /S /D=" +configuration.getWinampDir();
+    int    rtn     = execForegroundProcess(cmdline.c_str());
 
-        remove(path.c_str());
+    remove(path.c_str());
 
-        if (rtn==0) {
-            LPVOID errmsg;
-            DWORD  err = GetLastError();
-            FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,NULL,err,
-                          MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),(LPTSTR)&errmsg,0,NULL);
-            LOGGER("ERROR", rtn);
-            LOGGER("ERROR", err);
-            LOGGER("ERROR", (char*)errmsg);
-            exit(0);
-            throw ConnectionException((char*)errmsg);
-        } else {
+    if (rtn==0) {
+        LPVOID errmsg;
+        DWORD  err = GetLastError();
+        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,NULL,err,
+                      MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),(LPTSTR)&errmsg,0,NULL);
+        LOGGER("ERROR", rtn);
+        LOGGER("ERROR", err);
+        LOGGER("ERROR", (char*)errmsg);
+        exit(0);
+        throw ConnectionException((char*)errmsg);
+    } else {
 //          The installer restarts winamp in silent mode
 //          SendMessage(plugin.hwndWinampParent, WM_WA_IPC, 0, IPC_RESTARTWINAMP);
-        }   
-    } else {
-        throw ConnectionException("Cannot create temp file");
     }
 }
 

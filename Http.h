@@ -67,12 +67,12 @@ class HTTPMethodNotAllowedException: public HTTPException {
 class HTTPMethod: public JNL_HTTPGet {
 	private: 
 	    int    reply;
-		FILE*  fptr;
-		string file;
+		FILE*  fptr;		
 	
     protected:
         string method;
         string url;
+        string file;
         int    len;
         
     public:
@@ -93,14 +93,15 @@ class HTTPMethod: public JNL_HTTPGet {
 
 class HTTPGet: public HTTPMethod {
     public:
-        HTTPGet(string url, string user="", string passwd=""):
-        	HTTPMethod("GET", url, user, passwd) {}
+        HTTPGet(string url, string user="", string passwd="");
+        	
+        string getCachedFile()		{ return file;	}
 };
 
 
 class HTTPPut: public HTTPMethod {
     public:
-        HTTPPut(string url, string user="", string passwd="") throw (ConnectionException);
+        HTTPPut(string url, string user="", string passwd="");        
         
         int write(const void* bytes, int len);
 };

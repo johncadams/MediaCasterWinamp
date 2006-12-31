@@ -137,17 +137,13 @@ static int CenteredBox(HWND hwnd, const char* message, const char* title, int bu
 
 static void MsgBox(HWND hwnd, const char* message, const char* title) {
     TRACE("MsgBox");
-    char tmp[512];
-    sprintf(tmp, "%s - %s", PLUGIN_NAME, message);
-    CenteredBox(hwnd, message, tmp, MB_OK);
+    CenteredBox(hwnd, message, title, MB_OK);
 }
 
 
 static int YesNoBox(HWND hwnd, const char* message, const char* title) {
     TRACE("YesNoBox");
-    char tmp[512];
-    sprintf(tmp, "%s - %s", PLUGIN_NAME, message);    
-    return CenteredBox(hwnd, message, tmp, MB_YESNO)==IDYES;
+    return CenteredBox(hwnd, message, title, MB_YESNO)==IDYES;
 }
 
 

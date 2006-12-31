@@ -40,6 +40,7 @@
 #define DEFAULT_PLAY        "playlists.txt"
 #define DEFAULT_INST        "MediaCaster.exe"
 #define DEFAULT_BITR        "stream=1;bitrate=56%20kbps"
+#define DEFAULT_DATE		time(0)
 #define DEFAULT_UPDATE      1
 #define DEFAULT_MSG         ""
 #define DEFAULT_CACHE		"ml_mcaster_cache\\"
@@ -65,7 +66,7 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
 
 	logging = GetPrivateProfileInt(CONFIG_SEC,LOGGING_PROPERTY, DEFAULT_LOGGING,iniPath);
     updt    = GetPrivateProfileInt(CONFIG_SEC,UPDATE_PROPERTY,  DEFAULT_UPDATE, iniPath);
-    date    = GetPrivateProfileInt(CONFIG_SEC,DATE_PROPERTY,    0,              iniPath);
+    date    = GetPrivateProfileInt(CONFIG_SEC,DATE_PROPERTY,    DEFAULT_DATE,   iniPath);
         
     GetPrivateProfileString(CONFIG_SEC,HOST_PROPERTY,  DEFAULT_HOST, host,sizeof(host),iniPath);
     GetPrivateProfileString(CONFIG_SEC,PORT_PROPERTY,  DEFAULT_PORT, port,sizeof(port),iniPath);

@@ -5,6 +5,10 @@
 #include "date.h"
 
 
+#define GET_METHOD			"GET"
+#define HEAD_METHOD			"HEAD"
+#define PUT_METHOD			"PUT"
+
 #define OK					200
 #define FILE_UPTODATE		304
 #define FILE_NOT_FOUND		401
@@ -32,7 +36,7 @@ HTTPMethod::HTTPMethod(string method, string url, string username, string passwo
     if (ptr) {
 	    HTTPMethod::file = configuration.getCacheFile(++ptr);
 	    int date = getFileDate(file.c_str());
-	    if (date) {
+	    if (date && method.compare(GET_METHOD)==0) {
 	    	char* dateStr = getDateStr(date);
 		    LOGGER(IF_MODIFIED_SINCE, dateStr);
 		    string header(IF_MODIFIED_SINCE);
@@ -97,6 +101,7 @@ string HTTPMethod::lastModifiedStr() {
 void HTTPMethod::connect() throw (ConnectionException) {
     TRACE("HTTPMethod::connect");
     LOGGER("URL", url.c_str());
+    LOGGER("Method", method.c_str());
     JNL_HTTPGet::connect(url.c_str(), 0, (char*)method.c_str());
     
     int has_printed_headers = 0;
@@ -283,9 +288,13 @@ char* HTTPMethod::readLine(char*& buf) throw (HTTPException) {
 }
 
 
+HTTPGet::HTTPGet(string url, string user, string passwd) :
+	HTTPMethod(GET_METHOD, url, user, passwd) {
+}
 
-HTTPPut::HTTPPut(string url, string user, string passwd) throw (ConnectionException) :
-    HTTPMethod("PUT", url, user, passwd) {
+
+HTTPPut::HTTPPut(string url, string user, string passwd) :
+    HTTPMethod(PUT_METHOD, url, user, passwd) {
 }
 
 
@@ -294,9 +303,8 @@ int HTTPPut::write(const void* bytes, int len) {
 }
 
 
-
 HTTPInfo::HTTPInfo(string url, string user, string passwd) throw (ConnectionException) :
-    HTTPMethod("HEAD", url, user, passwd) {
+    HTTPMethod(HEAD_METHOD, url, user, passwd) {
     TRACE("HTTPInfo::HTTPInfo");
     HTTPMethod::connect();
 }
