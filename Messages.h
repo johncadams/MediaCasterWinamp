@@ -7,19 +7,24 @@
 /* General error/status messages */
 #define ERROR_OPENING_FILE      "Error opening file (%s): %s"
 #define CONN_PROBLEM_STATUS     "Connection FAILURE"
-#define CONN_PROBLEM_MSGBOX     "There was a problem connecting to the Media Caster server\n "\
+#define CONN_PROBLEM_MSGBOX     "There was a problem connecting to the Media Caster server.\n"\
+								"\n"\
+								"The problem might be due to incorrect connection parameters\n"\
+								"such as: username, password, hostname or port.  Otherwise the\n"\
+								"server may be down temporarily.\n"\
                                 "\n"\
                                 "Cause: %s"
                                 
 #define COPYRIGHT               "Brought to you by the fine folks at DigitalStreams,\n"  \
                                 "a wholly owned subsidary of Smada Nhoj Industries.\n"   \
-                                "Copyright 2005, all rights reserved"
+                                "Copyright 2005-2007, all rights reserved"
                                 
 #define CONTACT_US              "Contact DigitalStreams,\n"\
                                 "a wholly owned subsidary of Smada Nhoj Industries."
                                 
-#define INSTALLER_INSTRUCTS     "The auto-installer failed, you will need to run the installer manully:\n"\
-                                "   Cause: %s\n"\
+#define INSTALLER_INSTRUCTS     "The auto-installer failed, you will need to run the installer manually:\n"\
+                                "\n"\
+                                "Cause: %s\n"\
                                 "\n"\
                                 "Workaround:\n"\
                                 "   1) Terminate Winamp\n"\
@@ -32,7 +37,7 @@
 #define CONNECTING              "[Connecting...]"
 #define CONNECTED_UPDATING      "[Connected] Checking for updates"
 #define DISPLIST_DOWNLOAD       "[Connected] Retrieving list: %3d%%"
-#define INSTALLER_DOWNLOAD      "[Connected] Downloading installer: %3d%%"
+#define INSTALLER_DOWNLOAD      "[Connected] Adding new features: %3d%%"
 
 #define NUMITEMS_NODAYS         "%d items [%d:%02d:%02d]"
 #define NUMITEMS_WDAYS          "%d items [%d days+%d:%02d:%02d]"

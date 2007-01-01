@@ -137,7 +137,8 @@ static int CenteredBox(HWND hwnd, const char* message, const char* title, int bu
 
 static void MsgBox(HWND hwnd, const char* message, const char* title) {
     TRACE("MsgBox");
-    CenteredBox(hwnd, message, title, MB_OK);
+    string tmp = string(PLUGIN_NAME) +" - " +title;
+    MessageBox(hwnd, message, tmp.c_str(), MB_OK);
 }
 
 

@@ -96,7 +96,7 @@ int Upgrade::isAvailable() throw(ConnectionException) {
         } else {
 //          setStatusMessage(hwnd, UPTODATE_STATUS);
             status = false;
-        }
+        }        
         connProblem = 0;
         
     } catch (HTTPAuthenticationException& ex) {
@@ -105,9 +105,12 @@ int Upgrade::isAvailable() throw(ConnectionException) {
         
     } catch (HTTPException& ex) {
         if (ex.getErrorCode() == 404) {
-            CATCH(ex);
-            if (!connProblem) connectionProblemBox(hwnd, installerUrl.c_str());
-            connProblem = 1;
+            CATCH(ex);            
+            if (!connProblem) {
+            	connProblem = 1;
+            	string reason = "file not found: "+installerUrl;
+            	connectionProblemBox(hwnd, reason.c_str());
+            }            
         } else {
             RETHROW(ex);
         }
