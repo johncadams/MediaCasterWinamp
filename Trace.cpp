@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include "Trace.h"
 #include "MediaCaster.h"
-#include "Messages.h"
 
 
 TracePrinter::TracePrinter() {
