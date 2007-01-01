@@ -171,7 +171,7 @@ void aboutBox(HWND hwnd) {
 #ifdef DO_TRACING
     strcat(features, "\nLogging: enabled");
 #endif  
-    MsgBox(hwnd, features, "About");
+    CenteredBox(hwnd, features, "About", MB_OK);
 }
 
 
