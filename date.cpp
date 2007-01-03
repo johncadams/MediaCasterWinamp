@@ -1,5 +1,5 @@
-#include <sys/stat.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <time.h>
 #include "Trace.h"
 #include "date.h"
@@ -42,17 +42,23 @@ char* getDateStr(struct tm* ctime) {
 }
 
 
-long getDate(const char* date) {
+time_t getDate(const char* date) {
     // TRACE("getDate");
     struct tm ctime;
     memset(&ctime, 0, sizeof(ctime));
     char   dow[4];
     char   mon[4];
-    sscanf(date, "%3s, %2d %3s %4d %2d:%2d:%2d GMT", 
+    char   tzn[8];
+    sscanf(date, "%3s, %2d %3s %4d %2d:%2d:%2d %s", 
            dow, &(ctime.tm_mday), mon, &(ctime.tm_year),
-           &(ctime.tm_hour), &(ctime.tm_min), &(ctime.tm_sec));
+           &(ctime.tm_hour), &(ctime.tm_min), &(ctime.tm_sec),
+           tzn);
            
     ctime.tm_year -= 1900;
+    ctime.tm_isdst = -1; // Let it figure our DST
+    if (strcmp(tzn,"GMT")==0) {    	
+    	ctime.tm_hour -= 7; // Assume MST
+    }
            
     if      (strcmp(mon,"Jan")==0) ctime.tm_mon =  0;
     else if (strcmp(mon,"Feb")==0) ctime.tm_mon =  1;
@@ -71,7 +77,7 @@ long getDate(const char* date) {
 }
 
 
-int getFileDate(const char* filename) {
+time_t getFileDate(const char* filename) {
     // TRACE("getFileDate");
     struct stat buf;
     if (stat(filename, &buf)==0) {

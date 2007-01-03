@@ -25,6 +25,7 @@
 #define SORTCOL_PROPERTY    "sortcol"
 #define SORTDIR_PROPERTY    "sortdir"
 #define DATE_PROPERTY       "timestamp"
+#define TMPDATE_PROPERTY	"newtimestamp"
 #define UPDATE_PROPERTY     "autoupdate"
 #define MSG_PROPERTY        "message"
 
@@ -38,9 +39,13 @@
 #define DEFAULT_LOGF		"ml_mcaster.log"
 #define DEFAULT_LIBR        "library.txt"  // These values can be absolute
 #define DEFAULT_PLAY        "playlists.txt"
-#define DEFAULT_INST        "MediaCaster.exe"
+#ifdef IS_BETA
+#define DEFAULT_INST        "Releases/MediaCasterLatest.exe"
+#else
+#define DEFAULT_INST        "Releases/MediaCaster.exe"
+#endif
 #define DEFAULT_BITR        "stream=1;bitrate=56%20kbps"
-#define DEFAULT_DATE		time(0)
+#define DEFAULT_DATE		0
 #define DEFAULT_UPDATE      1
 #define DEFAULT_MSG         ""
 #define DEFAULT_CACHE		"ml_mcaster_cache\\"
@@ -63,11 +68,10 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
     sprintf(pluginDir, "%sPlugins\\",  winampDir);
     sprintf(iniPath,   "%s%s.ini", pluginDir, CONFIG_SEC);
         
-
 	logging = GetPrivateProfileInt(CONFIG_SEC,LOGGING_PROPERTY, DEFAULT_LOGGING,iniPath);
     updt    = GetPrivateProfileInt(CONFIG_SEC,UPDATE_PROPERTY,  DEFAULT_UPDATE, iniPath);
     date    = GetPrivateProfileInt(CONFIG_SEC,DATE_PROPERTY,    DEFAULT_DATE,   iniPath);
-        
+    
     GetPrivateProfileString(CONFIG_SEC,HOST_PROPERTY,  DEFAULT_HOST, host,sizeof(host),iniPath);
     GetPrivateProfileString(CONFIG_SEC,PORT_PROPERTY,  DEFAULT_PORT, port,sizeof(port),iniPath);
     GetPrivateProfileString(CONFIG_SEC,USER_PROPERTY,  DEFAULT_USER, user,sizeof(user),iniPath);
@@ -96,8 +100,8 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
     char filter[1024];
     GetPrivateProfileString(playlist, FILTER_PROPERTY, "", filter, sizeof(filter), iniPath);
     filters [playlist] = strdup(filter);
-    sortcols[playlist] = GetPrivateProfileInt(playlist, DATE_PROPERTY, 0, iniPath);
-    sortdirs[playlist] = GetPrivateProfileInt(playlist, DATE_PROPERTY, 0, iniPath);
+    sortcols[playlist] = GetPrivateProfileInt(playlist, SORTCOL_PROPERTY, 0, iniPath);
+    sortdirs[playlist] = GetPrivateProfileInt(playlist, SORTDIR_PROPERTY, 0, iniPath);
 }
 
 
@@ -202,7 +206,7 @@ void Configuration::setBuildDate(long date) {
     Configuration::date = date;
     char tmp[32];
     sprintf(tmp, "%ld", date);
-    WritePrivateProfileString(CONFIG_SEC, DATE_PROPERTY, tmp, iniPath);
+    WritePrivateProfileString(CONFIG_SEC, TMPDATE_PROPERTY, tmp, iniPath);
 }
 
 

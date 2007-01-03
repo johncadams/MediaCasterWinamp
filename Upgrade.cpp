@@ -11,6 +11,7 @@ using namespace std;
 #include "Process.h"
 #include "MediaCaster.h"
 #include "Messages.h"
+#include "date.h"
 
 
 Upgrade::Upgrade() {
@@ -39,8 +40,12 @@ void Upgrade::downloadFunction() throw (ConnectionException) {
         setStatusMessage(hwnd, status);         
     }
     
-//      Don't really need to do this since the installer closes winamp        
-//      SendMessage(plugin.hwndLibraryParent, WM_ML_IPC, (WPARAM)&plugin, ML_IPC_REMOVE_PLUGIN);
+	// Don't really need to do this since the installer closes winamp        
+	// SendMessage(plugin.hwndLibraryParent, WM_ML_IPC, (WPARAM)&plugin, ML_IPC_REMOVE_PLUGIN);
+	
+	// This set a temporary timestamp that the installer copies into place assuming
+	// it works.
+	configuration.setBuildDate(httpGet.lastModified());
     
     string path    = httpGet.getCachedFile();
     string cmdline = path +" /S /D=" +configuration.getWinampDir();
@@ -59,21 +64,16 @@ void Upgrade::downloadFunction() throw (ConnectionException) {
         exit(0);
         throw ConnectionException((char*)errmsg);
     } else {
-//          The installer restarts winamp in silent mode
-//          SendMessage(plugin.hwndWinampParent, WM_WA_IPC, 0, IPC_RESTARTWINAMP);
+		// The installer restarts winamp in silent mode
+		// SendMessage(plugin.hwndWinampParent, WM_WA_IPC, 0, IPC_RESTARTWINAMP);
     }
 }
 
 
 void Upgrade::download() throw(ConnectionException) {
     TRACE("Upgrade::download");
-    time_t     now   = time(NULL);
-    struct tm* ctime = gmtime(&now);
-    time_t     gmt   = mktime(ctime);  // This returns in GMT instead of local    
-    
     if (isAvailable()) {
         downloadFunction();
-        configuration.setBuildDate(gmt);
     }
 }
 
@@ -83,18 +83,18 @@ int Upgrade::isAvailable() throw(ConnectionException) {
     int status = false;
     
     try {                
-//      Don't output status message since this gets called from config dialog too
-//      setStatusMessage(hwnd, CONNECTING);
         HTTPInfo httpInfo(installerUrl, configuration.getUser(), configuration.getPassword());
-//      setStatusMessage(hwnd, CONNECTED_UPDATING);
 
         LOGGER("Local ", configuration.getBuildDate());
         LOGGER("Remote", httpInfo.lastModified());
+        LOGGER("Local ", getDateStr(configuration.getBuildDate()));
+        LOGGER("Remote", httpInfo.lastModifiedStr().c_str());
+        LOGGER("Local ", getDate(getDateStr(configuration.getBuildDate())));
+        LOGGER("Remote", getDate(httpInfo.lastModifiedStr().c_str()));
         if (httpInfo.lastModified()>configuration.getBuildDate()) {
             setStatusMessage(hwnd, UPGRADE_AVAIL_STATUS);
             status = true;
         } else {
-//          setStatusMessage(hwnd, UPTODATE_STATUS);
             status = false;
         }        
         connProblem = 0;

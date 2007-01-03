@@ -81,19 +81,19 @@ int HTTPMethod::contentLen() {
 
 
 string HTTPMethod::contentType() {
-	TRACE("HTTPMethod::contentType");
+	// TRACE("HTTPMethod::contentType");
 	return JNL_HTTPGet::getheader(CONTENT_TYPE);
 } 
 
 
 long HTTPMethod::lastModified() {
-	TRACE("HTTPMethod::lastModified");
+	// TRACE("HTTPMethod::lastModified");
 	return getDate(lastModifiedStr().c_str() );
 }
 
 
 string HTTPMethod::lastModifiedStr() {
-	TRACE("HTTPMethod::lastModifiedStr");
+	// TRACE("HTTPMethod::lastModifiedStr");
 	return JNL_HTTPGet::getheader(LAST_MODIFIED);
 }
 

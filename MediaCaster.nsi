@@ -115,6 +115,11 @@ Section ""
     ; Create the cache directory
     CreateDirectory $INSTDIR\Plugins\ml_mcaster_cache
     
+    ; reset the timestamp from newtimestamp
+    ReadINIStr $0 $INSTDIR\Plugins\ml_mcaster.ini ml_mcaster newtimestamp
+    StrCmp $0 "" startWinamp
+    WriteINIStr   $INSTDIR\Plugins\ml_mcaster.ini ml_mcaster timestamp $0
+    DeleteINIStr  $INSTDIR\Plugins\ml_mcaster.ini ml_mcaster newtimestamp
   
   startWinamp:
     ; prompt user, and if they select yes run winamp
@@ -141,13 +146,12 @@ Section "Uninstall"
   ; Remove the files and uninstaller
   Delete $INSTDIR\Plugins\ml_mcaster.dll
   Delete $INSTDIR\Plugins\ml_mcaster.ini
-  Delete $INSTDIR\Plugins\ml_mcaster_cache
+  RMDir  /r $INSTDIR\Plugins\ml_mcaster_cache
   Delete $INSTDIR\mcaster_uninstall.exe
-  Delete $INSTDIR\ml_caster.log
+  Delete $INSTDIR\ml_mcaster.log   ; this path can be overridden in the ini 
   
-    
   ; Delete the <= 1.1 trace log
-  Delete C:\ml_caster.log
+  Delete C:\ml_mcaster.log
 
 SectionEnd
 
