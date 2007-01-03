@@ -35,7 +35,11 @@
 #define DEFAULT_USER        ""
 #define DEFAULT_PWRD        ""
 #define DEFAULT_PATH        "/mcaster/"
+#ifdef IS_BETA
+#define DEFAULT_LOGGING		1
+#else
 #define DEFAULT_LOGGING		0
+#endif
 #define DEFAULT_LOGF		"ml_mcaster.log"
 #define DEFAULT_LIBR        "library.txt"  // These values can be absolute
 #define DEFAULT_PLAY        "playlists.txt"
