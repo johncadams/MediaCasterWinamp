@@ -39,6 +39,7 @@ using namespace std;
 #define TRACE_GLOBALS
 #include "Trace.h"
 #include "Messages.h"
+#include "date.h"
 
 
 // Timer IDs
@@ -165,12 +166,10 @@ void aboutBox(HWND hwnd) {
     char features[1024];
     strcpy(features, COPYRIGHT_MSGBOX);
     strcat(features, "\n \n");
-#ifdef NO_THREADS
-    strcat(features, "\nThreads: disabled");
-#endif    
-#ifdef DO_TRACING
-    strcat(features, "\nLogging: enabled");
-#endif  
+    strcat(features, "\nBuild: ");   strcat(features, getDateStr(configuration.getBuildDate()));
+    strcat(features, "\nLogging: "); strcat(features, configuration.isLogging() ?"enabled":"disabled");
+    strcat(features, "\nThreads: "); strcat(features, configuration.isThreaded()?"enabled":"disabled");
+
     CenteredBox(hwnd, features, "About", MB_OK);
 }
 

@@ -7,10 +7,6 @@
 #include "Http.h"
 #include "Trace.h"
 
-/*
-#define NO_THREADS
-*/
-
 
 static TimerThread* downloadThread;
 
@@ -134,9 +130,11 @@ void CasterLibrary::clearCache() {
 void CasterLibrary::download() {
     TRACE("CasterLibrary::download");
     
-#ifdef NO_THREADS
-    callDownload(this);
-#else
+	if (!configuration.isThreaded()) {
+    	callDownload(this);
+    	return;
+    }
+    	
     if (downloadThread == NULL) {
         downloadThread = new TimerThread(0, (Procedure)::callDownload, this);
     }
@@ -147,19 +145,15 @@ void CasterLibrary::download() {
     } else {
         LOGGER("THREAD", "spawning");
         downloadThread->start();
-    }
-#endif                 
+    }        
 }
 
 
 void CasterLibrary::downloadFunction() {
     TRACE("CasterLibrary::downloadFunction");
     
-#ifdef NO_THREADS
-    ::grayRefreshButton(hwnd, true);
-#else
-    ::showAbortButton  (hwnd, true);
-#endif
+	if (configuration.isThreaded()) ::showAbortButton  (hwnd, true);
+    else                            ::grayRefreshButton(hwnd, true);
 
     ListView_SetItemCount(listView.getwnd(),0);     
     try {
@@ -178,12 +172,9 @@ void CasterLibrary::downloadFunction() {
         ::setConnectionFailed();
         ::connectionProblemBox(hwnd, ex.getError());        
     }
-     
-#ifdef NO_THREADS
-    ::grayRefreshButton(hwnd, false);
-#else
-    ::showAbortButton  (hwnd, false);
-#endif
+
+    if (configuration.isThreaded()) ::showAbortButton  (hwnd, false);
+    else                            ::grayRefreshButton(hwnd, false);
 }
 
 

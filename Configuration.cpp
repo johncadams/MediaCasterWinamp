@@ -19,6 +19,7 @@
 #define LIBR_PROPERTY       "library"
 #define LOGF_PROPERTY       "logfile"
 #define LOGGING_PROPERTY    "logging"
+#define THREADS_PROPERTY	"threads"
 #define PLAY_PROPERTY       "playlists"
 #define INST_PROPERTY       "installer"
 #define FILTER_PROPERTY     "lastfilter"
@@ -53,6 +54,7 @@
 #define DEFAULT_UPDATE      1
 #define DEFAULT_MSG         ""
 #define DEFAULT_CACHE		"ml_mcaster_cache\\"
+#define DEFAULT_THREADS		1
 
 /*
 Configuration::Configuration() {
@@ -73,6 +75,7 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
     sprintf(iniPath,   "%s%s.ini", pluginDir, CONFIG_SEC);
         
 	logging = GetPrivateProfileInt(CONFIG_SEC,LOGGING_PROPERTY, DEFAULT_LOGGING,iniPath);
+	threads = GetPrivateProfileInt(CONFIG_SEC,THREADS_PROPERTY, DEFAULT_THREADS,iniPath);
     updt    = GetPrivateProfileInt(CONFIG_SEC,UPDATE_PROPERTY,  DEFAULT_UPDATE, iniPath);
     date    = GetPrivateProfileInt(CONFIG_SEC,DATE_PROPERTY,    DEFAULT_DATE,   iniPath);
     
@@ -91,6 +94,7 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
     // This forces things to be written out as to avoid having default values hidden
     Configuration::setWinampUserPassword();
     Configuration::setLogging(logging);
+    Configuration::setThreaded(threads);
     
     if (logf[0]!='/') {
         char tmp[1024];
@@ -225,6 +229,13 @@ void Configuration::setLogging(int logging) {
     TRACE("Configuration::setLogging");
     Configuration::logging = logging;
     WritePrivateProfileString(CONFIG_SEC, LOGGING_PROPERTY, logging?"1":"0", iniPath);
+}
+
+
+void Configuration::setThreaded(int threads) {
+    TRACE("Configuration::setThreaded");
+    Configuration::threads = threads;
+    WritePrivateProfileString(CONFIG_SEC, THREADS_PROPERTY, threads?"1":"0", iniPath);
 }
 
 

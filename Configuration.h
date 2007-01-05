@@ -28,6 +28,7 @@ class Configuration {
         long   date;
         int    updt;
         int    logging;
+        int    threads;
         
         const char*        playlist;
         map<string,string> filters;
@@ -52,7 +53,8 @@ class Configuration {
         const char* getBitrate      () const { return bitr;      }
         long        getBuildDate    () const { return date;      }
         int         isAutoUpdate    () const { return updt;      }         
-        int         isLogging       () const { return logging;   } 
+        int         isLogging       () const { return logging;   }
+        int         isThreaded      () const { return threads;   }
         int         getSortColumn   ()       { return sortcols[playlist]; 		 }
         int         getSortDirection()       { return sortdirs[playlist]; 		 }
         const char* getFilter       ()       { return filters[playlist].c_str(); }   
@@ -66,6 +68,7 @@ class Configuration {
         void        setBuildDate    (long);
         void        setAutoUpdate   (int);
         void        setLogging      (int);
+        void        setThreaded     (int);
         void        setPlaylist     (const char*);        
         void        setSortColumn   (int);
         void        reverseDirection();
