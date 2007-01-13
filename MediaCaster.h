@@ -40,6 +40,7 @@ extern "C" {
 
 extern W_ListView                    listView;
 extern Configuration                 configuration;
+extern HTTPSession*                  httpSession;
 extern MediaCasterMediaLibraryPlugin plugin;
 
 

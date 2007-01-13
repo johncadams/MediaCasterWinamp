@@ -1,26 +1,3 @@
-/*
-** Copyright (C) 2003 Nullsoft, Inc.
-**
-** This software is provided 'as-is', without any express or implied warranty. In no event will
-**  the authors be held liable for any damages arising from the use of this software. 
-**
-** Permission is granted to anyone to use this software for any purpose, including commercial 
-** applications, and to alter it and redistribute it freely, subject to the following 
-** restrictions:
-**
-**   1. The origin of this software must not be misrepresented; you must not claim that you 
-**      wrote the original software.  If you use this software in a product, an acknowledgment
-**      in the product documentation would be appreciated but is not required.
-**
-**   2. Altered source versions must be plainly marked as such, and must not be misrepresented
-**      as being the original software.
-**
-**   3. This notice may not be removed or altered from any source distribution.
-**
-** Copyright (C) 2005 Smada Nhoj Industries
-**
-*/
-
 using namespace std;
 #include <string>
 
@@ -64,6 +41,7 @@ static unexpected_handler unexpectedHandler;
 
 // Globals
 Configuration             configuration;
+HTTPSession*              httpSession;
 W_ListView                listView;
 
     
@@ -259,15 +237,18 @@ static int init() {
     TRACE("init");
     unexpectedHandler = set_unexpected(exceptionHandler);
     
-    configuration.load(plugin);  
-    tracePrinter.init(configuration.getLogfilePath());
+    configuration.init(plugin);  
+    if (tracePrinter.init(configuration.getLogfilePath(), configuration.isLogging())!=0) {
+    	fileIoProblemBox(plugin.hwndLibraryParent, configuration.getLogfilePath(), strerror(errno));
+    }
     
     // add our root item to the tree
     mlAddTreeItemStruct mla = {0,(char*)PLUGIN_NAME,1,};
     SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,(WPARAM)&mla,ML_IPC_ADDTREEITEM);
     treeId = mla.this_id;
     
-    library = new CasterLibrary(treeId);
+    httpSession = new HTTPSession(configuration.getCacheDir(), configuration.getUser(), configuration.getPassword());
+    library     = new CasterLibrary(treeId);
  
     // add our pop-up menus
     rootMenus  = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(TREE_ROOT_MENU));
@@ -294,6 +275,7 @@ static int init() {
 static void quit() {
     TRACE("quit");
     delete library;    
+    delete httpSession;
     set_unexpected(unexpectedHandler);
 }
 
@@ -355,11 +337,13 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                      
                     GetDlgItemText(configDlg,CONFIG_USERNAME_FIELD,tmp,sizeof(tmp));
                      changed |= (strcmp(tmp,configuration.getUser())!=0);
-                     configuration.setUser(tmp);
+                     configuration.setUsername(tmp);
+                     httpSession->setUsername(tmp);
                      
                     GetDlgItemText(configDlg,CONFIG_PASSWORD_FIELD,tmp,sizeof(tmp));
                      changed |= (strcmp(tmp,configuration.getPassword())!=0);
                      configuration.setPassword(tmp);
+                     httpSession->setPassword(tmp);
     
                     GetDlgItemText(configDlg,CONFIG_BITRATE_SELECT,tmp,sizeof(tmp));
                      for (int i=0; i<bitratesSize; i++) {
@@ -738,9 +722,11 @@ static BOOL CALLBACK authDialogCallback(HWND authDlg, UINT uMsg, WPARAM wParam, 
                     TRACE("authDialogCallback/IDOK");
                     char tmp[64];
                     GetDlgItemText(authDlg,AUTH_USERNAME_FIELD,tmp,sizeof(tmp));
-                     configuration.setUser(tmp);                    
+                     configuration.setUsername(tmp);
+                     httpSession->setUsername(tmp);
                     GetDlgItemText(authDlg,AUTH_PASSWORD_FIELD,tmp,sizeof(tmp));
-                     configuration.setPassword(tmp);      
+                     configuration.setPassword(tmp);
+                     httpSession->setPassword(tmp);      
                     library->download();                     
                     EndDialog(authDlg,LOWORD(wParam) == IDOK);                  
                     break; 

@@ -1,9 +1,7 @@
 #include "Http.h"
 #include "jnetlib/webserver.h"
-#include "MediaCaster.h"
 #include "Trace.h"
 #include "date.h"
-
 
 #define GET_METHOD			"GET"
 #define HEAD_METHOD			"HEAD"
@@ -20,13 +18,14 @@
 #define WWW_AUTHENTICATE	"WWW-Authenticate"
 
 
-HTTPMethod::HTTPMethod(string method, string url, string username, string password) {
+HTTPMethod::HTTPMethod(string method, HTTPSession* session, string url) {
     TRACE("HTTPMethod::HTTPMethod");
-    HTTPMethod::url    = url;
-    HTTPMethod::method = method;
-    HTTPMethod::reply  = -1; 
-    HTTPMethod::fptr   = NULL; 
-    HTTPMethod::len    = 0;
+    HTTPMethod::url     = url;
+    HTTPMethod::method  = method;
+    HTTPMethod::session = session;
+    HTTPMethod::reply   = -1; 
+    HTTPMethod::fptr    = NULL; 
+    HTTPMethod::len     = 0;
     
     const char* ptr = NULL;
     for (const char* c=url.c_str(); *c; c++) {
@@ -34,11 +33,10 @@ HTTPMethod::HTTPMethod(string method, string url, string username, string passwo
     }
     
     if (ptr) {
-	    HTTPMethod::file = configuration.getCacheFile(++ptr);
+	    HTTPMethod::file = session->getCacheDir() + (++ptr);
 	    int date = getFileDate(file.c_str());
 	    if (date && method.compare(GET_METHOD)==0) {
 	    	char* dateStr = getDateStr(date);
-		    LOGGER(IF_MODIFIED_SINCE, dateStr);
 		    string header(IF_MODIFIED_SINCE);
 			header.append(": ");
 			header.append(dateStr);
@@ -46,9 +44,9 @@ HTTPMethod::HTTPMethod(string method, string url, string username, string passwo
 	    }
     }
     
-    if (username.length()>0 || password.length()>0) {
+    if (session->getUsername().length()>0 || session->getPassword().length()>0) {
         char b64[256];
-        string userpw = username +":"+ password;
+        string userpw = session->getUsername() +":"+ session->getPassword();
         WebServerBaseClass::base64encode((char*)userpw.c_str(), b64);
         
         char hdr[256];
@@ -66,6 +64,7 @@ HTTPMethod::~HTTPMethod() {
         
 void HTTPMethod::addHeader(string header) {
     TRACE("HTTPMethod::addHeader");
+    LOGGER("Header", header.c_str());
     JNL_HTTPGet::addheader(header.c_str());
 }
 
@@ -158,15 +157,14 @@ void HTTPMethod::connect() throw (ConnectionException) {
 }
 
 
-int HTTPMethod::read(void* bytes, int len) throw (HTTPException) {
+int HTTPMethod::read(void* bytes, int len) throw (ConnectionException) {
 	if (reply==FILE_UPTODATE) {
 		if (fptr==NULL) {
 			TRACE("HTTPMethod::read");
 			LOGGER("Reading cache", file.c_str());
 			fptr = fopen(file.c_str(), "r");
 			if (fptr==NULL) {
-				fileIoProblemBox(plugin.hwndLibraryParent, file.c_str(), strerror(errno));
-				exit(0);
+				THROW(CacheFileException(file.c_str(), errno));
 			}
 		}
 		if (!fread(bytes, len, 1, fptr)) {
@@ -192,8 +190,7 @@ int HTTPMethod::read(void* bytes, int len) throw (HTTPException) {
                 	LOGGER("Writing cache", file.c_str());
                 	fptr = fopen(file.c_str(), "wb");
                 	if (fptr==NULL) {
-						fileIoProblemBox(plugin.hwndLibraryParent, file.c_str(), strerror(errno));
-						exit(0);
+						THROW(CacheFileException(file.c_str(), errno));
 					}
                 }
                 fwrite(bytes, num, 1, fptr);
@@ -210,15 +207,14 @@ int HTTPMethod::read(void* bytes, int len) throw (HTTPException) {
 }
 
 
-char* HTTPMethod::readLine(char*& buf) throw (HTTPException) {
+char* HTTPMethod::readLine(char*& buf) throw (ConnectionException) {
     if (reply==FILE_UPTODATE) {
 		if (fptr==NULL) {
 			TRACE("HTTPMethod::read");
 			LOGGER("Reading cache", file.c_str());
 			fptr = fopen(file.c_str(), "r");
 			if (fptr==NULL) {
-				fileIoProblemBox(plugin.hwndLibraryParent, file.c_str(), strerror(errno));
-				exit(0);
+				THROW(CacheFileException(file.c_str(), errno));
 			}
 		}
 		char tmp[2048];
@@ -260,8 +256,7 @@ char* HTTPMethod::readLine(char*& buf) throw (HTTPException) {
                         	LOGGER("Writing cache", file.c_str());
                         	fptr = fopen(file.c_str(), "wb");
                         	if (fptr==NULL) {
-								fileIoProblemBox(plugin.hwndLibraryParent, file.c_str(), strerror(errno));
-								exit(0);
+								THROW(CacheFileException(file.c_str(), errno));
 							}
                         }
                         fwrite(buf, num, 1, fptr);
@@ -288,13 +283,13 @@ char* HTTPMethod::readLine(char*& buf) throw (HTTPException) {
 }
 
 
-HTTPGet::HTTPGet(string url, string user, string passwd) :
-	HTTPMethod(GET_METHOD, url, user, passwd) {
+HTTPGet::HTTPGet(HTTPSession* session, string url) :
+	HTTPMethod(GET_METHOD, session, url) {
 }
 
 
-HTTPPut::HTTPPut(string url, string user, string passwd) :
-    HTTPMethod(PUT_METHOD, url, user, passwd) {
+HTTPPut::HTTPPut(HTTPSession* session, string url) :
+    HTTPMethod(PUT_METHOD, session, url) {
 }
 
 
@@ -303,8 +298,38 @@ int HTTPPut::write(const void* bytes, int len) {
 }
 
 
-HTTPInfo::HTTPInfo(string url, string user, string passwd) throw (ConnectionException) :
-    HTTPMethod(HEAD_METHOD, url, user, passwd) {
+HTTPInfo::HTTPInfo(HTTPSession* session, string url) throw (ConnectionException) :
+    HTTPMethod(HEAD_METHOD, session, url) {
     TRACE("HTTPInfo::HTTPInfo");
     HTTPMethod::connect();
+}
+
+
+int HTTPSession::ref = 0;
+
+HTTPSession::HTTPSession(string cachedir, string username, string passwd) {
+	TRACE("HTTPSession::HTTPSession");
+	if (ref++==0) {
+		TRACE("JNL::open_socketlib");
+		JNL::open_socketlib();
+	}
+	HTTPSession::cachedir = cachedir;
+	HTTPSession::username = username;
+	HTTPSession::passwd   = passwd;
+}
+
+HTTPSession::~HTTPSession() {
+	TRACE("HTTPSession::~HTTPSession");
+	if (--ref==0) {
+		TRACE("JNL::close_socketlib");
+		JNL::close_socketlib();
+	}
+}
+
+void HTTPSession::setUsername(const char* username) { 
+	HTTPSession::username = username;
+}
+
+void HTTPSession::setPassword(const char* passwd) {
+	HTTPSession::passwd   = passwd;
 }

@@ -18,13 +18,13 @@ class Configuration {
         char   port     [  16];
         char   user     [  32];
         char   pwrd     [  32];
-        char   path     [1024];
+        char   udir     [1024];
         char   libr     [1024];
         char   logf     [1024];
         char   play     [1024];
         char   inst     [1024];
         char   bitr     [  32];
-        char   msg      [1024];
+        char   mesg     [1024];
         long   date;
         int    updt;
         int    logging;
@@ -44,7 +44,8 @@ class Configuration {
 /*      Configuration();
        ~Configuration();
 */        
-        void load(winampMediaLibraryPlugin);
+        void init(const char*);
+        void init(winampMediaLibraryPlugin);
        
         const char* getHost         () const { return host;      }
         const char* getPort         () const { return port;      }       
@@ -58,11 +59,11 @@ class Configuration {
         int         getSortColumn   ()       { return sortcols[playlist]; 		 }
         int         getSortDirection()       { return sortdirs[playlist]; 		 }
         const char* getFilter       ()       { return filters[playlist].c_str(); }   
-        const char* getMessage      () const { return msg;       }
+        const char* getMessage      () const { return mesg;      }
                  
         void        setHost         (const char*);
         void        setPort         (const char*);
-        void        setUser         (const char*);
+        void        setUsername     (const char*);
         void        setPassword     (const char*);
         void        setBitrate      (const char*);
         void        setBuildDate    (long);

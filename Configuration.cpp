@@ -15,7 +15,7 @@
 #define USER_PROPERTY       "user"
 #define PWRD_PROPERTY       "pwrd"
 #define BITR_PROPERTY       "bitrate"
-#define PATH_PROPERTY       "path"
+#define UDIR_PROPERTY       "path"
 #define LIBR_PROPERTY       "library"
 #define LOGF_PROPERTY       "logfile"
 #define LOGGING_PROPERTY    "logging"
@@ -28,14 +28,14 @@
 #define DATE_PROPERTY       "timestamp"
 #define TMPDATE_PROPERTY	"newtimestamp"
 #define UPDATE_PROPERTY     "autoupdate"
-#define MSG_PROPERTY        "message"
+#define MESG_PROPERTY       "message"
 
 // Default values
 #define DEFAULT_HOST        "mcaster.kicks-ass.net"
 #define DEFAULT_PORT        "9000" // 80 when blank
 #define DEFAULT_USER        ""
 #define DEFAULT_PWRD        ""
-#define DEFAULT_PATH        "/mcaster/"
+#define DEFAULT_UDIR        "/mcaster/"
 #ifdef IS_BETA
 #define DEFAULT_LOGGING		1
 #else
@@ -52,7 +52,7 @@
 #define DEFAULT_BITR        "stream=1;bitrate=56%20kbps"
 #define DEFAULT_DATE		0
 #define DEFAULT_UPDATE      1
-#define DEFAULT_MSG         ""
+#define DEFAULT_MESG        ""
 #define DEFAULT_CACHE		"ml_mcaster_cache\\"
 #define DEFAULT_THREADS		1
 
@@ -67,9 +67,9 @@ Configuration::~Configuration() {
 */
 
 
-void Configuration::load(winampMediaLibraryPlugin plugin) {
-    TRACE("Configuration::load");
-    strcpy(winampDir, (char*)SendMessage(plugin.hwndWinampParent,WM_WA_IPC,0,IPC_GETINIDIRECTORY));
+void Configuration::init(const char* rootDir) {
+	TRACE("Configuration::load");
+    strcpy(winampDir, rootDir);
     strcat(winampDir, "\\");
     sprintf(pluginDir, "%sPlugins\\",  winampDir);
     sprintf(iniPath,   "%s%s.ini", pluginDir, CONFIG_SEC);
@@ -83,13 +83,13 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
     GetPrivateProfileString(CONFIG_SEC,PORT_PROPERTY,  DEFAULT_PORT, port,sizeof(port),iniPath);
     GetPrivateProfileString(CONFIG_SEC,USER_PROPERTY,  DEFAULT_USER, user,sizeof(user),iniPath);
     GetPrivateProfileString(CONFIG_SEC,PWRD_PROPERTY,  DEFAULT_PWRD, pwrd,sizeof(pwrd),iniPath);
-    GetPrivateProfileString(CONFIG_SEC,PATH_PROPERTY,  DEFAULT_PATH, path,sizeof(path),iniPath);
+    GetPrivateProfileString(CONFIG_SEC,UDIR_PROPERTY,  DEFAULT_UDIR, udir,sizeof(udir),iniPath);
     GetPrivateProfileString(CONFIG_SEC,LOGF_PROPERTY,  DEFAULT_LOGF, logf,sizeof(logf),iniPath);
     GetPrivateProfileString(CONFIG_SEC,LIBR_PROPERTY,  DEFAULT_LIBR, libr,sizeof(libr),iniPath);
     GetPrivateProfileString(CONFIG_SEC,PLAY_PROPERTY,  DEFAULT_PLAY, play,sizeof(play),iniPath);
     GetPrivateProfileString(CONFIG_SEC,INST_PROPERTY,  DEFAULT_INST, inst,sizeof(inst),iniPath);
     GetPrivateProfileString(CONFIG_SEC,BITR_PROPERTY,  DEFAULT_BITR, bitr,sizeof(bitr),iniPath);
-    GetPrivateProfileString(CONFIG_SEC,MSG_PROPERTY,   DEFAULT_MSG,  msg, sizeof(msg), iniPath);
+    GetPrivateProfileString(CONFIG_SEC,MESG_PROPERTY,  DEFAULT_MESG, mesg,sizeof(mesg),iniPath);
     
     // This forces things to be written out as to avoid having default values hidden
     Configuration::setWinampUserPassword();
@@ -112,12 +112,19 @@ void Configuration::load(winampMediaLibraryPlugin plugin) {
     sortdirs[playlist] = GetPrivateProfileInt(playlist, SORTDIR_PROPERTY, 0, iniPath);
 }
 
+void Configuration::init(winampMediaLibraryPlugin plugin) {
+    TRACE("Configuration::load");
+    char winampDir[1024];
+    strcpy(winampDir, (char*)SendMessage(plugin.hwndWinampParent,WM_WA_IPC,0,IPC_GETINIDIRECTORY));
+    init(winampDir);
+}
+
 
 string Configuration::getURL(const char* file) const {
     TRACE("Configuration::getURL");
     string port = Configuration::getPort()[0]?Configuration::getPort():"80";
     string base = string("http://") +Configuration::getHost() +":" +port;
-    if (file[0]!='/') base += path;
+    if (file[0]!='/') base += udir;
     base += file;
     LOGGER("URL", base.c_str());
     return base;
@@ -187,8 +194,8 @@ void Configuration::setPort(const char* port) {
 }
 
 
-void Configuration::setUser(const char* user) {
-    TRACE("Configuration::setUser");
+void Configuration::setUsername(const char* user) {
+    TRACE("Configuration::setUsername");
     strcpy(Configuration::user, user);
     WritePrivateProfileString(CONFIG_SEC, USER_PROPERTY, user, iniPath);
     setWinampUserPassword();
@@ -241,8 +248,8 @@ void Configuration::setThreaded(int threads) {
 
 void Configuration::resetMessage() {
     TRACE("Configuration::resetMessage");
-    strcpy(Configuration::msg, "");
-    WritePrivateProfileString(CONFIG_SEC, MSG_PROPERTY, msg, iniPath);
+    strcpy(Configuration::mesg, "");
+    WritePrivateProfileString(CONFIG_SEC, MESG_PROPERTY, mesg, iniPath);
 }
 
 

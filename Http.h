@@ -1,4 +1,3 @@
-
 #ifndef HTTP_H
 #define HTTP_H
 
@@ -17,6 +16,13 @@ class ConnectionException: public exception {
         ConnectionException(const char* errstr) {
             ConnectionException::errstr = strdup(errstr?errstr:"");
         }
+        
+        ConnectionException(const char* cause, int errnum) {
+        	string err = cause;
+        	err += ": ";
+        	err += strerror(errnum);
+            ConnectionException::errstr = strdup(err.c_str());
+        }
 
         const char* getError() {
             return errstr;
@@ -25,6 +31,12 @@ class ConnectionException: public exception {
         string toString() {
             return errstr;
         }
+};
+
+
+class CacheFileException: public ConnectionException {
+	public:
+        CacheFileException(const char* filename, int errnum): ConnectionException(filename,errnum) {}
 };
 
 
@@ -63,6 +75,26 @@ class HTTPMethodNotAllowedException: public HTTPException {
 };
 
 
+class HTTPSession {
+	private:
+	    static int ref;
+		string cachedir;
+		string username;
+		string passwd;
+		
+	public:
+		HTTPSession(string cachedir, string username="", string passwd="");
+		virtual ~HTTPSession();
+		
+		string getCacheDir()				{ return cachedir;			}
+		string getUsername()				{ return username;			}
+		string getPassword()				{ return passwd;			}
+		
+		void setUsername(const char* username);
+		void setPassword(const char* passwd);
+};
+
+
 
 class HTTPMethod: public JNL_HTTPGet {
 	private: 
@@ -70,19 +102,20 @@ class HTTPMethod: public JNL_HTTPGet {
 		FILE*  fptr;		
 	
     protected:
-        string method;
-        string url;
-        string file;
-        int    len;
+    	HTTPSession* session;
+        string       method;
+        string       url;
+        string       file;
+        int          len;
         
     public:
-        HTTPMethod(string method, string url, string user="", string passwd="");
+        HTTPMethod(string method, HTTPSession* session, string url);
        	virtual ~HTTPMethod();
         
         void   addHeader(string header);              
         void   connect  ()                     throw (ConnectionException);
-        int    read     (void* buf, int len)   throw (HTTPException);
-        char*  readLine (char*& buf)           throw (HTTPException);
+        int    read     (void* buf, int len)   throw (ConnectionException);
+        char*  readLine (char*& buf)           throw (ConnectionException);
         
         int    contentLen();
         string contentType();
@@ -92,25 +125,23 @@ class HTTPMethod: public JNL_HTTPGet {
 
 
 class HTTPGet: public HTTPMethod {
-    public:
-        HTTPGet(string url, string user="", string passwd="");
-        	
+	public:
+        HTTPGet(HTTPSession* session, string url);
         string getCachedFile()		{ return file;	}
 };
 
 
 class HTTPPut: public HTTPMethod {
-    public:
-        HTTPPut(string url, string user="", string passwd="");        
-        
+	public:
+	    HTTPPut(HTTPSession* session, string url);
         int write(const void* bytes, int len);
 };
 
 
 class HTTPInfo: HTTPMethod {
-    public:
-        HTTPInfo(string url, string user="", string passwd="") throw (ConnectionException);
-        
+	public:
+	    HTTPInfo(HTTPSession* session, string url) throw (ConnectionException);
+	    
         // Promote these to public
         int    contentLen()			{ return HTTPMethod::contentLen();		}
         string contentType()		{ return HTTPMethod::contentType();		}

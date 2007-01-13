@@ -24,7 +24,7 @@ Upgrade::Upgrade() {
 void Upgrade::downloadFunction() throw (ConnectionException) {
     TRACE("Upgrade::downloadFunction");
     
-    HTTPGet httpGet(installerUrl, configuration.getUser(), configuration.getPassword());
+    HTTPGet httpGet(httpSession,installerUrl);
     char    bytes[1024];
     int     cnt;
     int     total = 0;
@@ -82,9 +82,9 @@ int Upgrade::isAvailable() throw(ConnectionException) {
     TRACE("Upgrade::isAvailable");
     int status = false;
     
-    try {                
-        HTTPInfo httpInfo(installerUrl, configuration.getUser(), configuration.getPassword());
-
+    try { 
+		HTTPInfo httpInfo(httpSession,installerUrl);
+		
         LOGGER("Local ", configuration.getBuildDate());
         LOGGER("Remote", httpInfo.lastModified());
         LOGGER("Local ", getDateStr(configuration.getBuildDate()));
@@ -100,6 +100,10 @@ int Upgrade::isAvailable() throw(ConnectionException) {
         connProblem = 0;
         
     } catch (HTTPAuthenticationException& ex) {
+        // If we don't catch this this way it gets reported as HTTPException
+        RETHROW(ex);
+        
+    } catch (CacheFileException& ex) {
         // If we don't catch this this way it gets reported as HTTPException
         RETHROW(ex);
         

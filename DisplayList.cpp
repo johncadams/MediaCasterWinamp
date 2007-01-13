@@ -16,7 +16,6 @@ MasterList::MasterList(const char* name, SongList* songList) {
     MasterList::name           = strdup(name);
     MasterList::songList       = songList;
     MasterList::refCount       = 1;
-    JNL::open_socketlib();
 }
 
 
@@ -24,7 +23,6 @@ MasterList::~MasterList() {
     TRACE("MasterList::~MasterList");
     delete songList;
     delete name;
-    JNL::close_socketlib();
 }
 
 
@@ -72,7 +70,7 @@ void MasterList::downloadFunction() throw(ConnectionException)  {
     string    masterListUrl = configuration.getURL( configuration.getLibraryPath() );
 
     setStatusMessage(hwnd, CONNECTING);
-    HTTPGet httpGet(masterListUrl, configuration.getUser(), configuration.getPassword());
+    HTTPGet httpGet(httpSession,masterListUrl);
     httpGet.addHeader("User-Agent: MediaCaster (Winamp)");
     httpGet.addHeader("Accept:     text/*");
     
@@ -114,6 +112,12 @@ void MasterList::downloadFunction() throw(ConnectionException)  {
     } catch (HTTPAuthenticationException& ex) {
         // Have to do it this way or this exception isn't rethrown correctly
         CATCH(ex);
+        delete newSongs;
+        songList->clear();
+        RETHROW(ex);
+        
+    } catch (CacheFileException& ex) {
+    	CATCH(ex);
         delete newSongs;
         songList->clear();
         RETHROW(ex);

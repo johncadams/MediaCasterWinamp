@@ -115,7 +115,7 @@ void M3uPlayList::downloadFunction() throw(ConnectionException) {
     SongList* newSongs = new SongList();
     string    m3uUrl   = configuration.getURL(m3u);
     
-    HTTPGet httpGet(m3uUrl, configuration.getUser(), configuration.getPassword());
+    HTTPGet httpGet(httpSession,m3uUrl);
     httpGet.addHeader("User-Agent: MediaCaster (Winamp)");
     httpGet.addHeader("Accept:     text/*");
     
@@ -160,6 +160,12 @@ void M3uPlayList::downloadFunction() throw(ConnectionException) {
         CATCH(ex);
         delete newSongs;
         RETHROW(ex);
+        
+    } catch (CacheFileException& ex) {
+        // Have to do it this way or this exception isn't rethrown correctly
+        CATCH(ex);
+        delete newSongs;
+        RETHROW(ex);
 
     } catch (ConnectionException& ex) {
     	CATCH(ex);
@@ -198,8 +204,8 @@ static C_ItemList* downloadFunction(DisplayList& rootList) throw(ConnectionExcep
     
     C_ItemList* newLists = new C_ItemList();
         
-    string  playlistUrl = configuration.getURL( configuration.getPlaylistPath() );
-    HTTPGet httpGet(playlistUrl, configuration.getUser(), configuration.getPassword());
+    string       playlistUrl = configuration.getURL( configuration.getPlaylistPath() );
+    HTTPGet httpGet(httpSession,playlistUrl);
     httpGet.addHeader("User-Agent: MediaCaster (Winamp)");
     httpGet.addHeader("Accept:     text/*");
     
@@ -238,6 +244,12 @@ static C_ItemList* downloadFunction(DisplayList& rootList) throw(ConnectionExcep
         }
                 
     } catch (HTTPAuthenticationException& ex) {
+        // If we don't catch this this way it gets reported as HTTPException
+        CATCH(ex);
+        delete newLists;
+        RETHROW(ex);
+        
+    } catch (CacheFileException& ex) {
         // If we don't catch this this way it gets reported as HTTPException
         CATCH(ex);
         delete newLists;

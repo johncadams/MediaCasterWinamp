@@ -33,7 +33,7 @@ class TracePrinter {
 		TracePrinter();		
 	   ~TracePrinter();		
 		
-		void init(const char* logfile);
+		int init(const char* logfile, int isLogging);
 		
 		TraceFrame getTraceFrame(const char* method);
 		void       print(const char* marker, const char* message);

@@ -1,6 +1,6 @@
 #include <stdlib.h>
+#include <string.h>
 #include "Trace.h"
-#include "MediaCaster.h"
 
 
 TracePrinter::TracePrinter() {
@@ -9,23 +9,32 @@ TracePrinter::TracePrinter() {
 	tmp[0] = 0;
 }
 
-TracePrinter::~TracePrinter() {
-	if (fd) fclose(fd);
+TracePrinter::~TracePrinter() {	
+	if (fd && fd!=stdout && fd!=stderr) fclose(fd);
 	fd = NULL;
 }
 
 
-void TracePrinter::init(const char* logfile) {
-	if (!inited && configuration.isLogging()) {
-		fd = fopen(logfile, "w");
-		if (fd) {
-			fprintf(fd, "%s", tmp);
+int TracePrinter::init(const char* logfile, int isLogging) {
+	if (!inited && isLogging) {
+		if (strcmp(logfile,"stdout")==0) {
+			fd = stdout;
 			
-		} else {
-			fileIoProblemBox(plugin.hwndLibraryParent, logfile, strerror(errno));
-		}		
+		} else if (strcmp(logfile,"stderr")==0) {
+			fd = stderr;
+			
+		} else if (strcmp(logfile,"stderr")==0) {
+			fd = fopen(logfile, "w");
+			if (fd) {
+				fprintf(fd, "%s", tmp);
+				
+			} else {
+				return errno;
+			}		
+		}
 	}
 	inited = 1;
+	return 0;
 }
 
 
