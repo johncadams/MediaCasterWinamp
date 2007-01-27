@@ -1,6 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "Trace.h"
+#include "date.h"
+
+#define REOPEN_EACH_TIME 0
 
 
 TracePrinter::TracePrinter() {
@@ -10,6 +14,7 @@ TracePrinter::TracePrinter() {
 }
 
 TracePrinter::~TracePrinter() {	
+	delete(logfile);
 	if (fd && fd!=stdout && fd!=stderr) fclose(fd);
 	fd = NULL;
 }
@@ -17,26 +22,31 @@ TracePrinter::~TracePrinter() {
 
 int TracePrinter::init(const char* logfile, int isLogging) {
 	if (!inited && isLogging) {
-		if (strcmp(logfile,"stdout")==0) {
-			fd = stdout;
-			
-		} else if (strcmp(logfile,"stderr")==0) {
-			fd = stderr;
-			
-		} else if (strcmp(logfile,"stderr")==0) {
-			fd = fopen(logfile, "w");
-			if (fd) {
-				fprintf(fd, "%s", tmp);
-				
-			} else {
-				return errno;
-			}		
-		}
+		int err = 0;
+		TracePrinter::logfile = strdup(logfile);
+		if ((err=getFd("w")) != 0) return err;
+		inited = 1;
 	}
-	inited = 1;
+	fprintf(fd, "********\n*** %s\n********\n", getDateStr( time(0) ));
+	fprintf(fd, "%s", tmp);
 	return 0;
 }
 
+
+int TracePrinter::getFd(const char* how) {
+	if (strcmp(logfile,"stdout")==0) {
+		fd = stdout;
+		
+	} else if (strcmp(logfile,"stderr")==0) {
+		fd = stderr;
+		
+	} else {
+		if (fd) fclose(fd);
+		fd = fopen(logfile, how);
+		if (!fd) return errno;		
+	}
+	return 0;
+}
 
 TraceFrame TracePrinter::getTraceFrame(const char* method) {
 	return TraceFrame(this, method);
@@ -44,10 +54,10 @@ TraceFrame TracePrinter::getTraceFrame(const char* method) {
 
 
 void TracePrinter::print(const char* marker, const char* message) {
-	if (fd) {
+	if (fd) {		
 		for (int i=0; i<depth; i++) fprintf(fd, " ");            
-	    fprintf(fd, "%s%s\n", marker, message);
-	    fflush(fd);
+	    fprintf(fd, "%s%s\n", marker, message);	  
+	    if (REOPEN_EACH_TIME) getFd("a");  
 	    
     } else if (!inited) {
     	for (int i=0; i<depth; i++) strcat(tmp, " ");            

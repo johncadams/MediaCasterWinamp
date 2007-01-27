@@ -11,7 +11,7 @@ class TraceFrame {
 	
     private:
     	TracePrinter* printer;
-    	const char*   method;
+    	const char*   method;    	
      
     protected:
        TraceFrame(TracePrinter* printer, const char* method);
@@ -28,12 +28,14 @@ class TracePrinter {
 		char  tmp[4096];		
 		int   inited;
     	int   depth;
+    	char* logfile;
 		
 	public:
 		TracePrinter();		
 	   ~TracePrinter();		
 		
 		int init(const char* logfile, int isLogging);
+		int getFd(const char*);
 		
 		TraceFrame getTraceFrame(const char* method);
 		void       print(const char* marker, const char* message);
