@@ -57,23 +57,28 @@ static char* bitrates[][2]=
 
 static int bitratesSize = sizeof(bitrates)/sizeof(char*)/2;
 
+#define LEFT	0x1000
+#define TOP		0x0100
+#define RIGHT	0x0010
+#define BOTTOM	0x0001
+
 static ChildWndResizeItem main_resize_rlist[] =
-{ { MAIN_SEARCH_FIELD,     0x0010},
-  { MAIN_CLEAR_BTN,        0x1010},
-  { MAIN_LIST,             0x0011},
-  { MAIN_PLAY_BTN,         0x0101},
-  { MAIN_ENQUEUE_BTN,      0x0101},
-  { MAIN_REFRESH_BTN,      0x0101},
-  { MAIN_ABORT_BTN,        0x0101},
-  { MAIN_STATUS_TEXT,      0x0111},
-  { MAIN_CONFIG_BTN,       0x1111},
+{ { MAIN_SEARCH_FIELD,     RIGHT},
+  { MAIN_CLEAR_BTN,        LEFT  | RIGHT},
+  { MAIN_LIST,             RIGHT | BOTTOM},
+  { MAIN_PLAY_BTN,         TOP   | BOTTOM},
+  { MAIN_ENQUEUE_BTN,      TOP   | BOTTOM},
+  { MAIN_REFRESH_BTN,      TOP   | BOTTOM},
+  { MAIN_ABORT_BTN,        TOP   | BOTTOM},
+  { MAIN_STATUS_TEXT,      TOP   | RIGHT | BOTTOM},
+  { MAIN_CONFIG_BTN,       LEFT  | TOP   | RIGHT | BOTTOM},
 };
 
 static ChildWndResizeItem config_resize_rlist[] =
-{ { CONFIG_HOST_FIELD,     0x0010},
-  { CONFIG_PORT_FIELD,     0x1010},
-  { CONFIG_USERNAME_FIELD, 0x0011},
-  { CONFIG_PASSWORD_FIELD, 0x0101},
+{ { CONFIG_HOST_FIELD,     RIGHT},
+  { CONFIG_PORT_FIELD,     LEFT | RIGHT},
+  { CONFIG_USERNAME_FIELD, RIGHT|BOTTOM},
+  { CONFIG_PASSWORD_FIELD, TOP  |BOTTOM},
 };
 
 
@@ -301,7 +306,6 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
             SetDlgItemText(configDlg, CONFIG_PORT_FIELD,     configuration.getPort());
             SetDlgItemText(configDlg, CONFIG_USERNAME_FIELD, configuration.getUser());
             SetDlgItemText(configDlg, CONFIG_PASSWORD_FIELD, configuration.getPassword());
-            SetDlgItemText(configDlg, CONFIG_CONNECTED_TEXT, "");
             CheckDlgButton(configDlg, CONFIG_UPGRADE_CHECK,  configuration.isAutoUpdate()?BST_CHECKED:BST_UNCHECKED);
             
             int j = 0;
