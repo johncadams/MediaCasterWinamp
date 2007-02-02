@@ -8,6 +8,8 @@
 #define PUT_METHOD			"PUT"
 
 #define OK					200
+#define FILE_MOVED			301
+#define FILE_MOVED_TEMP		302
 #define FILE_UPTODATE		304
 #define FILE_NOT_FOUND		401
 #define METHOD_NOT_ALLOWED	405
@@ -18,7 +20,7 @@
 #define WWW_AUTHENTICATE	"WWW-Authenticate"
 
 
-HTTPMethod::HTTPMethod(string method, HTTPSession* session, string url) {
+HTTPMethod::HTTPMethod(string method, HTTPSession* session, string url, const char* file) {
     TRACE("HTTPMethod::HTTPMethod");
     HTTPMethod::url     = url;
     HTTPMethod::method  = method;
@@ -27,20 +29,21 @@ HTTPMethod::HTTPMethod(string method, HTTPSession* session, string url) {
     HTTPMethod::fptr    = NULL; 
     HTTPMethod::len     = 0;
     
-    const char* ptr = NULL;
-    for (const char* c=url.c_str(); *c; c++) {
-    	if (*c=='/') ptr = c;
-    }
-    
-    if (ptr) {
-	    HTTPMethod::file = session->getCacheDir() + (++ptr);
-	    int date = getFileDate(file.c_str());
-	    if (date && method.compare(GET_METHOD)==0) {
-	    	char* dateStr = getDateStr(date);
-		    string header(IF_MODIFIED_SINCE);
-			header.append(": ");
-			header.append(dateStr);
-			addHeader(header);
+    if (file && file[0]) {
+    	HTTPMethod::file = file;
+    	
+    } else {
+	    const char* ptr = basename(url.c_str());
+	    if (ptr) {
+		    HTTPMethod::file = session->getCacheDir() + (ptr);
+		    int date = getFileDate(HTTPMethod::file.c_str());
+		    if (date && method.compare(GET_METHOD)==0) {
+		    	char* dateStr = getDateStr(date);
+			    string header(IF_MODIFIED_SINCE);
+				header.append(": ");
+				header.append(dateStr);
+				addHeader(header);
+		    }
 	    }
     }
     
@@ -113,6 +116,14 @@ void HTTPMethod::connect() throw (ConnectionException) {
 	    	LOGGER("ERROR", JNL_HTTPGet::geterrorstr());
 	    	LOGGER("reply", JNL_HTTPGet::getreply());
 			switch (reply) {
+				case FILE_MOVED:
+				case FILE_MOVED_TEMP: {
+					const char* newUrl = getheader("Location");
+					LOGGER("Location", newUrl);
+					HTTPMethod redo(method, session, newUrl, NULL);
+					redo.connect();
+					return;
+				}
             	case FILE_UPTODATE: {
             		return;
             	}
@@ -284,12 +295,17 @@ char* HTTPMethod::readLine(char*& buf) throw (ConnectionException) {
 
 
 HTTPGet::HTTPGet(HTTPSession* session, string url) :
-	HTTPMethod(GET_METHOD, session, url) {
+	HTTPMethod(GET_METHOD, session, url, NULL) {
+}
+
+
+HTTPGet::HTTPGet(HTTPSession* session, string url, const char* file) :
+	HTTPMethod(GET_METHOD, session, url, file) {
 }
 
 
 HTTPPut::HTTPPut(HTTPSession* session, string url) :
-    HTTPMethod(PUT_METHOD, session, url) {
+    HTTPMethod(PUT_METHOD, session, url, NULL) {
 }
 
 
@@ -299,7 +315,7 @@ int HTTPPut::write(const void* bytes, int len) {
 
 
 HTTPInfo::HTTPInfo(HTTPSession* session, string url) throw (ConnectionException) :
-    HTTPMethod(HEAD_METHOD, session, url) {
+    HTTPMethod(HEAD_METHOD, session, url, NULL) {
     TRACE("HTTPInfo::HTTPInfo");
     HTTPMethod::connect();
 }

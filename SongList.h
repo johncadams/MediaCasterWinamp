@@ -28,6 +28,7 @@ class SongList {
         
         void         play()               const { playOrEnqueue(PLAY);                  }
         void         enqueue()            const { playOrEnqueue(ENQUEUE);               }
+        void         save(HWND)           const;
         int          toItemRecordList(itemRecordList&, int) const;
 };
 

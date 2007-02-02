@@ -1,5 +1,6 @@
-#include <string.h>
 #include <sys/stat.h>
+#include <string.h>
+#include <stdlib.h>
 #include <time.h>
 #include "Trace.h"
 #include "date.h"
@@ -102,4 +103,50 @@ char* getDateStr(time_t time) {
     struct tm* ctime = gmtime(&time);
     char*      str   = getDateStr(ctime);
     return str;
+}
+
+
+const char* basename(const char* filepath) {
+	// TRACE("basename");
+	const char* ptr = NULL;
+    for (const char* c=filepath; *c; c++) {
+    	if (*c=='/') ptr = c;
+    }
+    return ++ptr;
+}
+
+
+char* encodeURL(const char* url) {
+	TRACE("encodeURL");
+	return NULL;
+}
+
+
+char* decodeURL(const char* url) {
+	// TRACE("decodeURL");
+	unsigned i,j;
+	char*    tmp = strdup(url);
+	for (i=j=0; i<strlen(url); i++) {
+		switch (url[i]) {
+			case '+':
+				tmp[j++] = ' ';
+				break;
+				
+			case '%': {
+				char  start[3];
+				char* stop;
+				strncpy(start, url+i+1, 2);
+				start[2] = '\0';
+				int foo = strtoul(start, &stop, 16);
+				tmp[j++] = foo;
+				i+=2;
+				break;
+			}
+			default:
+				tmp[j++] = url[i];
+				
+		}
+		tmp[j] = '\0';
+	}
+	return tmp;
 }

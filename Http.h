@@ -109,7 +109,7 @@ class HTTPMethod: public JNL_HTTPGet {
         int          len;
         
     public:
-        HTTPMethod(string method, HTTPSession* session, string url);
+        HTTPMethod(string method, HTTPSession* session, string url, const char* file);
        	virtual ~HTTPMethod();
         
         void   addHeader(string header);              
@@ -127,6 +127,7 @@ class HTTPMethod: public JNL_HTTPGet {
 class HTTPGet: public HTTPMethod {
 	public:
         HTTPGet(HTTPSession* session, string url);
+        HTTPGet(HTTPSession* session, string url, const char* file);
         string getCachedFile()		{ return file;	}
 };
 

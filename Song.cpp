@@ -43,12 +43,9 @@ void Song::deleteReference() {
 }
  
         
-string Song::toUrl(string user, string passwd, string host, string port, string query) const {
+string Song::toUrl(string host, string port, string query) const {
     TRACE("Song::toUrl");
     string url = string("http://") ; 
-/*
-    if (user.length()  >0 || 
-        passwd.length()>0)   url += user +":" +passwd +"@";  */
     if (host.length()  >0)   url += host;
     if (port.length()  >0)   url += ":" +port;
     if (file.length()  >0)   url += file;
@@ -58,9 +55,9 @@ string Song::toUrl(string user, string passwd, string host, string port, string 
 }
 
 
-void Song::toListItem(string user, string passwd, string host, string port, string bitrate, itemRecord& item) const {
+void Song::toListItem(string host, string port, string bitrate, itemRecord& item) const {
     TRACE("Song::toListItem");
-    string url = toUrl(user, passwd, host, port, bitrate);
+    string url = toUrl(host, port, bitrate);
     
     memset(&item,0,sizeof(itemRecord));
     item.album    = strdup(album  .c_str());

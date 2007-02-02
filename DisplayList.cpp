@@ -320,6 +320,12 @@ void DisplayListImpl::enqueue() const {
     songList->enqueue();
 }
 
+
+void DisplayListImpl::save() const {
+    TRACE("DisplayListImpl::save");
+    songList->save(getHwnd());
+}
+
         
 void DisplayListImpl::drop(POINT p) const {
     TRACE("DisplayListImpl::drop");

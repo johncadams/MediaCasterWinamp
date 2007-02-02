@@ -1,10 +1,15 @@
+#include <stdio.h>
+
+#include <windows.h>
 #include "gen_ml/listview.h"
 #include "gen_ml/itemlist.h"
 #include "winamp/wa_dlg.h"
 
 #include "MediaCaster.h"
+#include "Messages.h"
 #include "SongList.h"
 #include "Trace.h"
+#include "date.h"
 
 
 static int sortFunction(const void* elem1, const void* elem2) {
@@ -155,8 +160,50 @@ void SongList::playOrEnqueue(int enqueue) const {
     delete recList.Items; 
 }
 
+void SongList::save(HWND hwnd) const {
+    TRACE("SongList::save"); 
+	for (int x=0; x<songList->GetSize(); x++) {
+        if (listView.GetSelected(x)) {
+            const Song* song = (Song*)songList->Get(x);
+            string      url  = song->toUrl(configuration.getHost(), 
+                                           configuration.getPort(), 
+                                           "");
+                                           
+			char*   filename = decodeURL( basename(url.c_str()) );
+			string  path     = configuration.getDownloadDir();
+			
+			if (path.length() == 0) {
+				char* dir = folderSelectionDialog(hwnd, NULL);
+				configuration.setDownloadDir(dir);
+				path = configuration.getDownloadDir();
+				delete dir;
+			}
+			
+			if (path[path.length()-1] != '\\') path.append("\\");
+			path.append(filename);
+            HTTPGet httpGet(httpSession,url,path.c_str());
+		    httpGet.addHeader("User-Agent: MediaCaster (Winamp)");
+		    httpGet.addHeader("Accept:     text/*");
+		    
+		    setStatusMessage(hwnd, CONNECTING);
+		    httpGet.connect();
+		    
+		    char bytes[1024];
+		    int  cnt;
+    		int  total = 0;
+		    while( (cnt=httpGet.read(bytes, sizeof(bytes))) ) {
+        		total += cnt;
+        		char status[256];
+        		sprintf(status, MP3_DOWNLOAD, filename, int( float(total*100./httpGet.contentLen())) );
+        		setStatusMessage(hwnd, status);         
+    		}
+    		
+    		delete filename;
+        }
+    }
+}
 
-
+	
 int SongList::toItemRecordList(itemRecordList& recList, int enqueue) const {
     TRACE("SongList::toItemRecordList");    
     recList.Alloc = recList.Size = 0;
@@ -182,9 +229,7 @@ int SongList::toItemRecordList(itemRecordList& recList, int enqueue) const {
             allocRecordList(&recList,recList.Size+1,1024);
     
             const Song* song = (Song*)songList->Get(x);
-            song->toListItem(configuration.getUser(), 
-                             configuration.getPassword(),
-                             configuration.getHost(), 
+            song->toListItem(configuration.getHost(), 
                              configuration.getPort(),
                              configuration.getBitrate(),
                              recList.Items[recList.Size]);

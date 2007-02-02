@@ -88,6 +88,12 @@ void CasterLibrary::enqueue() const {
 }
 
 
+void CasterLibrary::save() const {
+    TRACE("CasterLibrary::save");
+    currentList->save();
+}
+
+
 int CasterLibrary::getSize() {
 //  TRACE("CasterLibrary::getSize");
     return currentList->getSize();

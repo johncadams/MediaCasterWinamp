@@ -33,8 +33,8 @@ class Song {
         Song*  addReference();
         void   deleteReference();
         
-        string toUrl     (string, string, string, string, string) const;
-        void   toListItem(string, string, string, string, string, itemRecord&) const;
+        string toUrl     (string, string, string) const;
+        void   toListItem(string, string, string, itemRecord&) const;
 };
 
 #endif

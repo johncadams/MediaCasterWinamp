@@ -2,6 +2,7 @@ using namespace std;
 #include <string>
 
 #include <windows.h>
+#include <shlobj.h>
 
 #include "gen_ml/listview.h"
 #include "gen_ml/childwnd.h"
@@ -238,6 +239,7 @@ void exceptionHandler() {
 	unexpectedHandler();
 }
 
+
 static int init() {
     TRACE("init");
     unexpectedHandler = set_unexpected(exceptionHandler);
@@ -285,6 +287,52 @@ static void quit() {
 }
 
 
+static int CALLBACK folderSelectionDialogCallback(HWND hwnd,UINT uMsg, LPARAM lParam, LPARAM lpData) {
+	TRACE("folderSelectionDialogCallback");
+	// If the BFFM_INITIALIZED message is received
+	// set the path to the start path.
+	switch (uMsg) {
+		case BFFM_INITIALIZED: {
+			if (!lpData) {
+				SendMessage(hwnd, BFFM_SETSELECTION, TRUE, lpData);
+			}
+		}
+	}
+	return 0;
+}
+
+
+char* folderSelectionDialog(HWND hwnd, const char* currDir) {
+	TRACE("folderSelectionDialog");
+	BROWSEINFO   bi = { 0 };
+	LPITEMIDLIST pidl;
+	TCHAR        szDisplay[MAX_PATH];
+	BOOL         retval;
+	char         rtnPath[MAX_PATH];
+
+	bi.hwndOwner      = hwnd;
+	bi.pszDisplayName = szDisplay;
+	bi.lpszTitle      = TEXT(DIRECTORY_CHOOSER);
+	bi.ulFlags        = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+	bi.lpfn           = folderSelectionDialogCallback;
+	bi.lParam         = (LPARAM) currDir;
+
+	pidl = SHBrowseForFolder(&bi);
+
+	if (NULL != pidl) {
+		retval = SHGetPathFromIDList(pidl, rtnPath);
+	} else {
+		retval = FALSE;
+	}
+
+	if (!retval) {
+		rtnPath[0] = '\0';
+	}
+	
+	return strdup(rtnPath);
+}
+
+
 static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     // TRACE("configDialogCallback");
     switch (uMsg) {
@@ -306,6 +354,7 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
             SetDlgItemText(configDlg, CONFIG_PORT_FIELD,     configuration.getPort());
             SetDlgItemText(configDlg, CONFIG_USERNAME_FIELD, configuration.getUser());
             SetDlgItemText(configDlg, CONFIG_PASSWORD_FIELD, configuration.getPassword());
+            SetDlgItemText(configDlg, CONFIG_DIRECTORY_FIELD,configuration.getDownloadDir());
             CheckDlgButton(configDlg, CONFIG_UPGRADE_CHECK,  configuration.isAutoUpdate()?BST_CHECKED:BST_UNCHECKED);
             
             int j = 0;
@@ -348,6 +397,10 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                      changed |= (strcmp(tmp,configuration.getPassword())!=0);
                      configuration.setPassword(tmp);
                      httpSession->setPassword(tmp);
+                     
+                    GetDlgItemText(configDlg,CONFIG_DIRECTORY_FIELD,tmp,sizeof(tmp));
+                     changed |= (strcmp(tmp,configuration.getDownloadDir())!=0);
+                     configuration.setDownloadDir(tmp);
     
                     GetDlgItemText(configDlg,CONFIG_BITRATE_SELECT,tmp,sizeof(tmp));
                      for (int i=0; i<bitratesSize; i++) {
@@ -428,6 +481,10 @@ static int onListItemClick(HWND hwndParent) {
     
         case MAIN_LIST_ENQUEUE_ITEM:
             library->enqueue();
+            break;
+            
+        case MAIN_LIST_DOWNLOAD_ITEM:
+            library->save();
             break;
     }            
     return 1;
@@ -785,7 +842,7 @@ static int onTreeItemClick(int selTreeId, int action, HWND hwndParent) {
             	library->setTreeId(selTreeId, hwndParent);
             	library->enqueue();
             	break;
-            }
+            }            
         }            
     }
     return 1;

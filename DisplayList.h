@@ -56,6 +56,7 @@ class DisplayList {
         virtual void         setHwnd(HWND hwnd)         = 0;
         virtual void         play()               const = 0;
         virtual void         enqueue()            const = 0;
+        virtual void         save()               const = 0;
         virtual void         drop(POINT)          const = 0;
         virtual void         abort()              const = 0;
         virtual void         download()                 = 0;
@@ -102,6 +103,7 @@ class DisplayListImpl: public DisplayList {
 
         virtual void         play()       const;
         virtual void         enqueue()    const;
+        virtual void         save()       const;
         virtual void         drop(POINT)  const;
         virtual void         abort()      const;
         virtual void         download() throw(ConnectionException);

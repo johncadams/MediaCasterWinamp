@@ -35,6 +35,7 @@ class CasterLibrary {
        virtual void        abort();
        virtual void        enqueue() const;
        virtual void        play() const;
+       virtual void        save() const;
        virtual int         getSize();
        virtual const Song* getSong(int);
        virtual int         checkId(int);

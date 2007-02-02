@@ -44,18 +44,19 @@ extern HTTPSession*                  httpSession;
 extern MediaCasterMediaLibraryPlugin plugin;
 
 
-extern void authDialog              (HWND);
-extern void configDialog            (HWND);
-extern void aboutBox                (HWND);
-extern void fileIoProblemBox        (HWND, const char*, const char*);
-extern void connectionProblemBox    (HWND, const char*);
-extern void newFeatureBox           (HWND, const char*, int&);
-extern void setStatusMessage        (HWND, const char*);
-extern void showAbortButton         (HWND, int);
-extern void grayRefreshButton       (HWND, int);
-extern void getSearchString         (HWND, char*, unsigned);
-extern void setConnectionFailed     ();
-extern void setConnectionSuccess    ();
-extern int  isConnectionFailed      ();
+extern void  authDialog              (HWND);
+extern void  configDialog            (HWND);
+extern void  aboutBox                (HWND);
+extern void  fileIoProblemBox        (HWND, const char*, const char*);
+extern void  connectionProblemBox    (HWND, const char*);
+extern void  newFeatureBox           (HWND, const char*, int&);
+extern char* folderSelectionDialog   (HWND, const char*);
+extern void  setStatusMessage        (HWND, const char*);
+extern void  showAbortButton         (HWND, int);
+extern void  grayRefreshButton       (HWND, int);
+extern void  getSearchString         (HWND, char*, unsigned);
+extern void  setConnectionFailed     ();
+extern void  setConnectionSuccess    ();
+extern int   isConnectionFailed      ();
 
 #endif /*MEDIACASTER_H_*/

@@ -57,6 +57,7 @@ void TracePrinter::print(const char* marker, const char* message) {
 	if (fd) {		
 		for (int i=0; i<depth; i++) fprintf(fd, " ");            
 	    fprintf(fd, "%s%s\n", marker, message);	  
+	    fflush(fd);
 	    if (REOPEN_EACH_TIME) getFd("a");  
 	    
     } else if (!inited) {

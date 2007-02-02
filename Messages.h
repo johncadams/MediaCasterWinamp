@@ -32,12 +32,14 @@
                                 "   3) Execute the installer\n"\
                                 "   4) Re-enable Auto-Update (Config dialog)"
 
+#define DIRECTORY_CHOOSER       "Please choose a folder."
         
 /* Used in the status bar */
 #define CONNECTING              "[Connecting...]"
 #define CONNECTED_UPDATING      "[Connected] Checking for updates"
 #define DISPLIST_DOWNLOAD       "[Connected] Retrieving list: %3d%%"
 #define INSTALLER_DOWNLOAD      "[Connected] Adding new features: %3d%%"
+#define MP3_DOWNLOAD            "[Connected] Downloading: [%s] %3d%%"
 
 #define NUMITEMS_NODAYS         "%d items [%d:%02d:%02d]"
 #define NUMITEMS_WDAYS          "%d items [%d days+%d:%02d:%02d]"
