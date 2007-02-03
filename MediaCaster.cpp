@@ -354,7 +354,6 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
             SetDlgItemText(configDlg, CONFIG_PORT_FIELD,     configuration.getPort());
             SetDlgItemText(configDlg, CONFIG_USERNAME_FIELD, configuration.getUser());
             SetDlgItemText(configDlg, CONFIG_PASSWORD_FIELD, configuration.getPassword());
-            SetDlgItemText(configDlg, CONFIG_DIRECTORY_FIELD,configuration.getDownloadDir());
             CheckDlgButton(configDlg, CONFIG_UPGRADE_CHECK,  configuration.isAutoUpdate()?BST_CHECKED:BST_UNCHECKED);
             
             int j = 0;
@@ -398,10 +397,6 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                      configuration.setPassword(tmp);
                      httpSession->setPassword(tmp);
                      
-                    GetDlgItemText(configDlg,CONFIG_DIRECTORY_FIELD,tmp,sizeof(tmp));
-                     changed |= (strcmp(tmp,configuration.getDownloadDir())!=0);
-                     configuration.setDownloadDir(tmp);
-    
                     GetDlgItemText(configDlg,CONFIG_BITRATE_SELECT,tmp,sizeof(tmp));
                      for (int i=0; i<bitratesSize; i++) {
                         if (strcmp(bitrates[i][0], tmp)==0) {
@@ -418,6 +413,13 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                     }
                     break;                            
                 }
+                case CONFIG_DOWNLOAD_BTN: {
+                    TRACE("configDialogCallback::DLG_DOWNLOAD");
+                    char* dir = folderSelectionDialog(configDlg, NULL);
+					configuration.setDownloadDir(dir);
+					delete dir;                  
+                    break;                            
+                }   
                 case CONFIG_REFRESH_BTN: {
                     TRACE("configDialogCallback::DLG_REFRESH");
                     library->clearCache();

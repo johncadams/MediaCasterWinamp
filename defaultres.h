@@ -9,7 +9,7 @@
 #define CONFIG_UPGRADE_TEXT     6006
 #define CONFIG_HOST_FIELD       6001
 #define CONFIG_UPGRADE_BTN      6011
-#define CONFIG_DIRECTORY_FIELD  6012
+#define CONFIG_DOWNLOAD_BTN     6012
 #define ABOUT_DIALOG            4000
 #define ABOUT_TEXT              4001
 #define AUTH_DIALOG             9000

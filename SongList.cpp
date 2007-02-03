@@ -162,7 +162,9 @@ void SongList::playOrEnqueue(int enqueue) const {
 
 void SongList::save(HWND hwnd) const {
     TRACE("SongList::save"); 
+    int i = 0;
 	for (int x=0; x<songList->GetSize(); x++) {
+		int numSel = ListView_GetSelectedCount(listView.getwnd());
         if (listView.GetSelected(x)) {
             const Song* song = (Song*)songList->Get(x);
             string      url  = song->toUrl(configuration.getHost(), 
@@ -185,19 +187,19 @@ void SongList::save(HWND hwnd) const {
 		    httpGet.addHeader("User-Agent: MediaCaster (Winamp)");
 		    httpGet.addHeader("Accept:     text/*");
 		    
-		    setStatusMessage(hwnd, CONNECTING);
+		    if (i==0) setStatusMessage(hwnd, CONNECTING);
 		    httpGet.connect();
 		    
 		    char bytes[1024];
 		    int  cnt;
     		int  total = 0;
+    		i++;
 		    while( (cnt=httpGet.read(bytes, sizeof(bytes))) ) {
         		total += cnt;
         		char status[256];
-        		sprintf(status, MP3_DOWNLOAD, filename, int( float(total*100./httpGet.contentLen())) );
+        		sprintf(status, MP3_DOWNLOAD, i, numSel, int( float(total*100./httpGet.contentLen())) );
         		setStatusMessage(hwnd, status);         
-    		}
-    		
+    		}    		
     		delete filename;
         }
     }
