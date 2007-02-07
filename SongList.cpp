@@ -162,47 +162,60 @@ void SongList::playOrEnqueue(int enqueue) const {
 
 void SongList::save(HWND hwnd) const {
     TRACE("SongList::save"); 
-    int i = 0;
-	for (int x=0; x<songList->GetSize(); x++) {
-		int numSel = ListView_GetSelectedCount(listView.getwnd());
-        if (listView.GetSelected(x)) {
-            const Song* song = (Song*)songList->Get(x);
-            string      url  = song->toUrl(configuration.getHost(), 
-                                           configuration.getPort(), 
-                                           "");
-                                           
-			char*   filename = decodeURL( basename(url.c_str()) );
-			string  path     = configuration.getDownloadDir();
-			
-			if (path.length() == 0) {
-				char* dir = folderSelectionDialog(hwnd, NULL);
-				configuration.setDownloadDir(dir);
-				path = configuration.getDownloadDir();
-				delete dir;
-			}
-			
-			if (path[path.length()-1] != '\\') path.append("\\");
-			path.append(filename);
-            HTTPGet httpGet(httpSession,url,path.c_str());
-		    httpGet.addHeader("User-Agent: MediaCaster (Winamp)");
-		    httpGet.addHeader("Accept:     text/*");
-		    
-		    if (i==0) setStatusMessage(hwnd, CONNECTING);
-		    httpGet.connect();
-		    
-		    char bytes[1024];
-		    int  cnt;
-    		int  total = 0;
-    		i++;
-		    while( (cnt=httpGet.read(bytes, sizeof(bytes))) ) {
-        		total += cnt;
-        		char status[256];
-        		sprintf(status, MP3_DOWNLOAD, i, numSel, int( float(total*100./httpGet.contentLen())) );
-        		setStatusMessage(hwnd, status);         
-    		}    		
-    		delete filename;
-        }
-    }
+    
+    try {
+	    int i = 0;
+		for (int x=0; x<songList->GetSize(); x++) {
+			int numSel = ListView_GetSelectedCount(listView.getwnd());
+	        if (listView.GetSelected(x)) {
+	            const Song* song = (Song*)songList->Get(x);
+	            string      url  = song->toUrl(configuration.getHost(), 
+	                                           configuration.getPort(), 
+	                                           "");
+	                                           
+				char*   filename = decodeURL( basename(url.c_str()) );
+				string  path     = configuration.getDownloadDir();
+				
+				if (path.length() == 0) {
+					char* dir = folderSelectionDialog(hwnd, NULL);
+					configuration.setDownloadDir(dir);
+					path = configuration.getDownloadDir();
+					delete dir;
+				}
+				
+				if (path[path.length()-1] != '\\') path.append("\\");
+				path.append(filename);
+	            HTTPGet httpGet(httpSession,url,path.c_str());
+			    httpGet.addHeader("User-Agent: MediaCaster (Winamp)");
+			    httpGet.addHeader("Accept:     text/*");
+			    
+			    if (i==0) setStatusMessage(hwnd, CONNECTING);
+			    httpGet.connect();
+			    
+			    char bytes[1024];
+			    int  cnt;
+	    		int  total = 0;
+	    		i++;
+			    while( (cnt=httpGet.read(bytes, sizeof(bytes))) ) {
+	        		total += cnt;
+	        		char status[256];
+	        		sprintf(status, MP3_DOWNLOAD, i, numSel, int( float(total*100./httpGet.contentLen())) );
+	        		setStatusMessage(hwnd, status);         
+	    		}    		
+	    		delete filename;
+	        }
+		}
+	        
+    } catch (HTTPAuthenticationException& ex) {
+        CATCH(ex);
+        ::setConnectionFailed();        
+        ::authDialog(hwnd);
+    
+	} catch (ConnectionException& ex) {
+        CATCH(ex);
+        ::setConnectionFailed();
+        ::connectionProblemBox(hwnd, ex.getError());        
+    }        
 }
 
 	

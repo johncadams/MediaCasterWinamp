@@ -69,6 +69,7 @@ static ChildWndResizeItem main_resize_rlist[] =
   { MAIN_LIST,             RIGHT | BOTTOM},
   { MAIN_PLAY_BTN,         TOP   | BOTTOM},
   { MAIN_ENQUEUE_BTN,      TOP   | BOTTOM},
+  { MAIN_DOWNLOAD_BTN,     TOP   | BOTTOM},
   { MAIN_REFRESH_BTN,      TOP   | BOTTOM},
   { MAIN_ABORT_BTN,        TOP   | BOTTOM},
   { MAIN_STATUS_TEXT,      TOP   | RIGHT | BOTTOM},
@@ -205,6 +206,18 @@ void showAbortButton(HWND hwnd, int show) {
 void grayRefreshButton(HWND hwnd, int gray) {
     TRACE("grayRefreshButton");    
     EnableWindow(GetDlgItem(hwnd, MAIN_REFRESH_BTN),!gray);
+}
+
+
+void showDownloadButton(HWND hwnd, int show) {
+    TRACE("showDownloadButton");
+	ShowWindow(GetDlgItem(hwnd, MAIN_DOWNLOAD_BTN),show);
+}
+
+
+void grayDownloadButton(HWND hwnd, int gray) {
+    TRACE("grayDownloadButton");    
+    EnableWindow(GetDlgItem(hwnd, MAIN_DOWNLOAD_BTN),!gray);
 }
 
 
@@ -518,6 +531,9 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
             *(void**)&cr_init                   =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,32,ML_IPC_SKIN_WADLG_GETFUNC);
             *(void**)&cr_resize                 =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,33,ML_IPC_SKIN_WADLG_GETFUNC);
       
+	      	showDownloadButton(mainDlg, false);
+	      	grayDownloadButton(mainDlg, true);  // This isn't working	      	
+
             if (cr_init) cr_init(mainDlg,main_resize_rlist,sizeof(main_resize_rlist)/sizeof(main_resize_rlist[0]));
 
             listView.setLibraryParentWnd(plugin.hwndLibraryParent);
@@ -548,6 +564,11 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
         case WM_NOTIFY: {            
             LPNMHDR l=(LPNMHDR)lParam;
             if (l->idFrom==MAIN_LIST) {
+/*
+            	int count = ListView_GetSelectedCount(listView.getwnd());
+            	LOGGER("Selected", count);
+            	grayDownloadButton(mainDlg,count==0);
+*/
             	if (l->code == (UINT)NM_RCLICK) {
             		TRACE("mainPageCallback/NM_RLCLK");
             		onListItemClick(mainDlg);
@@ -660,6 +681,11 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
             case MAIN_PLAY_BTN: {
                 TRACE("mainPageCallback/DLG_PLAY");
                 library->play();
+                break;
+            }
+            case MAIN_DOWNLOAD_BTN: {
+                TRACE("mainPageCallback/DLG_DOWNLOAD");
+                library->save();
                 break;
             }
             case MAIN_ENQUEUE_BTN: {

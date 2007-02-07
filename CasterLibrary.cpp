@@ -178,6 +178,19 @@ void CasterLibrary::downloadFunction() {
         ::setConnectionFailed();
         ::connectionProblemBox(hwnd, ex.getError());        
     }
+    
+    
+    try {    	
+    	const Song* song = displayList->getSong(0);
+        string      url  = song->toUrl(configuration.getHost(),configuration.getPort(),"");
+    	HTTPInfo    download(httpSession, url);
+    	showDownloadButton(hwnd, true);
+    	
+    } catch (ConnectionException& ex) {
+    	// No permission to download songs
+    	CATCH(ex);
+    	showDownloadButton(hwnd, false);
+    }
 
     if (configuration.isThreaded()) ::showAbortButton  (hwnd, false);
     else                            ::grayRefreshButton(hwnd, false);

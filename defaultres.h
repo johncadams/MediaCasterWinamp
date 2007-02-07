@@ -25,6 +25,7 @@
 #define MAIN_STATUS_TEXT        8007
 #define MAIN_CONFIG_BTN         8008
 #define MAIN_ABORT_BTN          8005
+#define MAIN_DOWNLOAD_BTN       8010
 #define MAIN_LIST_MENU          3000
 #define MAIN_LIST_PLAY_ITEM     3001
 #define MAIN_LIST_ENQUEUE_ITEM  3002
