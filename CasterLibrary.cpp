@@ -184,12 +184,12 @@ void CasterLibrary::downloadFunction() {
     	const Song* song = displayList->getSong(0);
         string      url  = song->toUrl(configuration.getHost(),configuration.getPort(),"");
     	HTTPInfo    download(httpSession, url);
-    	showDownloadButton(hwnd, true);
+    	showDownloadFeature(hwnd, true);
     	
     } catch (ConnectionException& ex) {
     	// No permission to download songs
     	CATCH(ex);
-    	showDownloadButton(hwnd, false);
+    	showDownloadFeature(hwnd, false);
     }
 
     if (configuration.isThreaded()) ::showAbortButton  (hwnd, false);

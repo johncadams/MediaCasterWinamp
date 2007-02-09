@@ -23,10 +23,6 @@
 #define COL_FILENAME        8
 
 
-
-
-
-
 class MediaCasterMediaLibraryPlugin: public winampMediaLibraryPlugin {
 	public:
 		MediaCasterMediaLibraryPlugin();
@@ -54,8 +50,8 @@ extern char* folderSelectionDialog   (HWND, const char*);
 extern void  setStatusMessage        (HWND, const char*);
 extern void  showAbortButton         (HWND, int);
 extern void  grayRefreshButton       (HWND, int);
-extern void  showDownloadButton      (HWND, int);
-extern void  grayDownloadButton      (HWND, int);
+extern void  showDownloadFeature     (HWND, int);
+extern void  grayDownloadFeature     (HWND, int);
 extern void  getSearchString         (HWND, char*, unsigned);
 extern void  setConnectionFailed     ();
 extern void  setConnectionSuccess    ();

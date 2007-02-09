@@ -68,19 +68,19 @@ static ChildWndResizeItem main_resize_rlist[] =
   { MAIN_CLEAR_BTN,        LEFT  | RIGHT},
   { MAIN_LIST,             RIGHT | BOTTOM},
   { MAIN_PLAY_BTN,         TOP   | BOTTOM},
-  { MAIN_ENQUEUE_BTN,      TOP   | BOTTOM},
-  { MAIN_DOWNLOAD_BTN,     TOP   | BOTTOM},
+  { MAIN_ENQUEUE_BTN,      TOP   | BOTTOM},  
   { MAIN_REFRESH_BTN,      TOP   | BOTTOM},
   { MAIN_ABORT_BTN,        TOP   | BOTTOM},
   { MAIN_STATUS_TEXT,      TOP   | RIGHT | BOTTOM},
+  { MAIN_DOWNLOAD_BTN,     LEFT  | TOP   | RIGHT | BOTTOM},
   { MAIN_CONFIG_BTN,       LEFT  | TOP   | RIGHT | BOTTOM},
 };
 
 static ChildWndResizeItem config_resize_rlist[] =
 { { CONFIG_HOST_FIELD,     RIGHT},
-  { CONFIG_PORT_FIELD,     LEFT | RIGHT},
-  { CONFIG_USERNAME_FIELD, RIGHT|BOTTOM},
-  { CONFIG_PASSWORD_FIELD, TOP  |BOTTOM},
+  { CONFIG_PORT_FIELD,     LEFT  | RIGHT},
+  { CONFIG_USERNAME_FIELD, RIGHT | BOTTOM},
+  { CONFIG_PASSWORD_FIELD, TOP   | BOTTOM},
 };
 
 
@@ -209,9 +209,17 @@ void grayRefreshButton(HWND hwnd, int gray) {
 }
 
 
-void showDownloadButton(HWND hwnd, int show) {
+void showDownloadFeature(HWND hwnd, int show) {
     TRACE("showDownloadButton");
-	ShowWindow(GetDlgItem(hwnd, MAIN_DOWNLOAD_BTN),show);
+    
+    ShowWindow(GetDlgItem(hwnd, MAIN_DOWNLOAD_BTN),show);
+    
+	if (show) {
+		DestroyMenu(listMenus);
+		listMenus = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(MAIN_LIST_MENU));		
+	} else {
+		RemoveMenu(listMenus, MAIN_LIST_DOWNLOAD_ITEM, MF_BYCOMMAND);
+	}
 }
 
 
@@ -531,7 +539,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
             *(void**)&cr_init                   =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,32,ML_IPC_SKIN_WADLG_GETFUNC);
             *(void**)&cr_resize                 =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,33,ML_IPC_SKIN_WADLG_GETFUNC);
       
-	      	showDownloadButton(mainDlg, false);
+	      	showDownloadFeature(mainDlg, false);
 	      	grayDownloadButton(mainDlg, true);  // This isn't working	      	
 
             if (cr_init) cr_init(mainDlg,main_resize_rlist,sizeof(main_resize_rlist)/sizeof(main_resize_rlist[0]));
