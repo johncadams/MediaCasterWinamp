@@ -35,6 +35,7 @@ static int                hasLoaded     = 0;
 static int                connFailed    = 0;
 static int                extraFeatures = 1;
 static int                adminFeatures = 0;
+static int                downloading   = 0;
 static int                treeId;
 static HMENU              rootMenus;
 static HMENU              childMenus;
@@ -72,7 +73,6 @@ static ChildWndResizeItem main_resize_rlist[] =
   { MAIN_PLAY_BTN,         TOP   | BOTTOM},
   { MAIN_ENQUEUE_BTN,      TOP   | BOTTOM},  
   { MAIN_REFRESH_BTN,      TOP   | BOTTOM},
-  { MAIN_ABORT_BTN,        TOP   | BOTTOM},
   { MAIN_STATUS_TEXT,      TOP   | RIGHT | BOTTOM},
   { MAIN_SAVE_BTN,         LEFT  | TOP   | RIGHT | BOTTOM},
   { MAIN_CONFIG_BTN,       LEFT  | TOP   | RIGHT | BOTTOM},
@@ -201,15 +201,15 @@ void setStatusMessage(HWND hwnd, const char* status) {
 
 
 void showAbortButton(HWND hwnd, int show) {
-    TRACE("showAbortButton");    
-    ShowWindow(GetDlgItem(hwnd, MAIN_REFRESH_BTN),!show);
-    ShowWindow(GetDlgItem(hwnd, MAIN_ABORT_BTN),   show);    
+    TRACE("showAbortButton");
+    downloading = show;
+    SetWindowText(GetDlgItem(hwnd,MAIN_REFRESH_BTN), show?"Abort":"Refresh");
 }
 
 
 void grayRefreshButton(HWND hwnd, int gray) {
     TRACE("grayRefreshButton");    
-    EnableWindow(GetDlgItem(hwnd, MAIN_REFRESH_BTN),!gray);
+    EnableWindow(GetDlgItem(hwnd,MAIN_REFRESH_BTN),!gray);
 }
 
 
@@ -386,6 +386,7 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
             SetDlgItemText(configDlg, CONFIG_PORT_FIELD,     configuration.getPort());
             SetDlgItemText(configDlg, CONFIG_USERNAME_FIELD, configuration.getUser());
             SetDlgItemText(configDlg, CONFIG_PASSWORD_FIELD, configuration.getPassword());
+            SetDlgItemText(configDlg, CONFIG_SAVEDIR_FIELD,  configuration.getSaveDir());
             CheckDlgButton(configDlg, CONFIG_UPGRADE_CHECK,  configuration.isAutoUpdate()?BST_CHECKED:BST_UNCHECKED);
             
             int j = 0;
@@ -429,6 +430,10 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                      configuration.setPassword(tmp);
                      httpSession->setPassword(tmp);
                      
+                    GetDlgItemText(configDlg,CONFIG_SAVEDIR_FIELD,tmp,sizeof(tmp));
+                     changed |= (strcmp(tmp,configuration.getSaveDir())!=0);
+                     configuration.setSaveDir(tmp);
+                     
                     GetDlgItemText(configDlg,CONFIG_BITRATE_SELECT,tmp,sizeof(tmp));
                      for (int i=0; i<bitratesSize; i++) {
                         if (strcmp(bitrates[i][0], tmp)==0) {
@@ -445,10 +450,11 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                     }
                     break;                            
                 }
-                case CONFIG_DOWNLOAD_BTN: {
+                case CONFIG_SAVEDIR_BTN: {
                     TRACE("configDialogCallback::DLG_DOWNLOAD");
                     char* dir = folderSelectionDialog(configDlg, NULL);
-					configuration.setDownloadDir(dir);
+					configuration.setSaveDir(dir);
+					SetDlgItemText(configDlg, CONFIG_SAVEDIR_FIELD, configuration.getSaveDir());
 					delete dir;                  
                     break;                            
                 }   
@@ -714,13 +720,12 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
 	            }
 	            case MAIN_REFRESH_BTN: {
 	                TRACE("mainPageCallback/DLG_REFRESH2");
-	                library->clearCache();
-					library->download();
-	                break;
-	            }
-	            case MAIN_ABORT_BTN: {
-	                TRACE("mainPageCallback/DLG_ABORT");
-	                library->abort();
+	                if (downloading) {
+	                	library->abort();
+	                } else {
+	                	library->clearCache();
+						library->download();
+	                }
 	                break;
 	            }
 	            case MAIN_CONFIG_BTN: {

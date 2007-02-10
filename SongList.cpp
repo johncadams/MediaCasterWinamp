@@ -174,12 +174,12 @@ void SongList::save(HWND hwnd) const {
 	                                           "");
 	                                           
 				char*   filename = decodeURL( basename(url.c_str()) );
-				string  path     = configuration.getDownloadDir();
+				string  path     = configuration.getSaveDir();
 				
 				if (path.length() == 0) {
 					char* dir = folderSelectionDialog(hwnd, NULL);
-					configuration.setDownloadDir(dir);
-					path = configuration.getDownloadDir();
+					configuration.setSaveDir(dir);
+					path = configuration.getSaveDir();
 					delete dir;
 				}
 				

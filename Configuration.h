@@ -25,7 +25,7 @@ class Configuration {
         char   inst     [1024];
         char   bitr     [  32];
         char   mesg     [1024];
-        char   dwnl     [1024];
+        char   sdir     [1024];
         long   date;
         int    updt;
         int    logging;
@@ -61,7 +61,7 @@ class Configuration {
         int         getSortDirection()       { return sortdirs[playlist]; 		 }
         const char* getFilter       ()       { return filters[playlist].c_str(); }   
         const char* getMessage      () const { return mesg;      }
-        const char* getDownloadDir  () const { return dwnl;      }
+        const char* getSaveDir      () const { return sdir;      }
                  
         void        setHost         (const char*);
         void        setPort         (const char*);
@@ -77,7 +77,7 @@ class Configuration {
         void        reverseDirection();
         void        setFilter       (const char*);
         void        resetMessage    ();
-        void        setDownloadDir  (const char*);
+        void        setSaveDir      (const char*);
         
         /* The following properties are read-only and hidden */
         const char* getLogfilePath  () const { return logf;      }	// filepath to ml_mcaster.log

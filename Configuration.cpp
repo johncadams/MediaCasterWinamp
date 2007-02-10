@@ -29,7 +29,7 @@
 #define TMPDATE_PROPERTY	"newtimestamp"
 #define UPDATE_PROPERTY     "autoupdate"
 #define MESG_PROPERTY       "message"
-#define DWNL_PROPERTY       "downloadDir"
+#define SDIR_PROPERTY       "saveDir"
 
 // Default values
 #define DEFAULT_HOST        "mcaster.kicks-ass.net"
@@ -56,7 +56,7 @@
 #define DEFAULT_MESG        ""
 #define DEFAULT_CACHE		"ml_mcaster_cache\\"
 #define DEFAULT_THREADS		1
-#define DEFAULT_DWNL        ""
+#define DEFAULT_SDIR        ""
 
 /*
 Configuration::Configuration() {
@@ -92,7 +92,7 @@ void Configuration::init(const char* rootDir) {
     GetPrivateProfileString(CONFIG_SEC,INST_PROPERTY,  DEFAULT_INST, inst,sizeof(inst),iniPath);
     GetPrivateProfileString(CONFIG_SEC,BITR_PROPERTY,  DEFAULT_BITR, bitr,sizeof(bitr),iniPath);
     GetPrivateProfileString(CONFIG_SEC,MESG_PROPERTY,  DEFAULT_MESG, mesg,sizeof(mesg),iniPath);
-    GetPrivateProfileString(CONFIG_SEC,DWNL_PROPERTY,  DEFAULT_DWNL, dwnl,sizeof(dwnl),iniPath);
+    GetPrivateProfileString(CONFIG_SEC,SDIR_PROPERTY,  DEFAULT_SDIR, sdir,sizeof(sdir),iniPath);
     
     // This forces things to be written out as to avoid having default values hidden
     Configuration::setWinampUserPassword();
@@ -269,8 +269,8 @@ void Configuration::setWinampUserPassword() {
 }
 
 
-void Configuration::setDownloadDir(const char* downloadDir) {
-	TRACE("Configuration::setDownloadDir");
-	strcpy(Configuration::dwnl, downloadDir);
-    WritePrivateProfileString(CONFIG_SEC, DWNL_PROPERTY, downloadDir, iniPath);
+void Configuration::setSaveDir(const char* saveDir) {
+	TRACE("Configuration::setSaveDir");
+	strcpy(Configuration::sdir, saveDir);
+    WritePrivateProfileString(CONFIG_SEC, SDIR_PROPERTY, saveDir, iniPath);
 }
