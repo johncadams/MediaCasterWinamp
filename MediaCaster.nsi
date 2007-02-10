@@ -72,7 +72,7 @@ Section ""
     FindWindow $0 "Winamp v1.x"
     IntCmp $0 0 stopWinampDone
     SendMessage $0 ${WM_CLOSE} 0 0
-    Sleep 2000		; hopefully long enough, really need a better test
+    Sleep 5000		; hopefully long enough, really need a better test
     Goto stopWinamp
   stopWinampDone:
   
