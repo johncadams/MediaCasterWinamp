@@ -31,8 +31,10 @@ using namespace std;
 
 
 static CasterLibrary*     library;
-static int                hasLoaded  = 0;
-static int                connFailed = 0;
+static int                hasLoaded     = 0;
+static int                connFailed    = 0;
+static int                extraFeatures = 1;
+static int                adminFeatures = 0;
 static int                treeId;
 static HMENU              rootMenus;
 static HMENU              childMenus;
@@ -72,7 +74,7 @@ static ChildWndResizeItem main_resize_rlist[] =
   { MAIN_REFRESH_BTN,      TOP   | BOTTOM},
   { MAIN_ABORT_BTN,        TOP   | BOTTOM},
   { MAIN_STATUS_TEXT,      TOP   | RIGHT | BOTTOM},
-  { MAIN_DOWNLOAD_BTN,     LEFT  | TOP   | RIGHT | BOTTOM},
+  { MAIN_SAVE_BTN,         LEFT  | TOP   | RIGHT | BOTTOM},
   { MAIN_CONFIG_BTN,       LEFT  | TOP   | RIGHT | BOTTOM},
 };
 
@@ -137,7 +139,7 @@ static int YesNoBox(HWND hwnd, const char* message, const char* title) {
 static int downloadUpgradeIfAvailableDialog(HWND hwnd) {
     TRACE("downloadUpgradeIfAvailableDialog");
     if (library->isUpgradeAvailable()) {
-        if (YesNoBox(hwnd, UPGRADE_AVAIL_MSGBOX, "Upgrade")) {
+        if (YesNoBox(hwnd, UPGRADE_AVAIL_MSGBOX, "Upgrade")) {            
             library->downloadUpgrade();
             return true;
         }
@@ -154,6 +156,8 @@ void aboutBox(HWND hwnd) {
     strcat(features, "\nBuild: ");   strcat(features, getDateStr(configuration.getBuildDate()));
     strcat(features, "\nLogging: "); strcat(features, configuration.isLogging() ?"enabled":"disabled");
     strcat(features, "\nThreads: "); strcat(features, configuration.isThreaded()?"enabled":"disabled");
+    strcat(features, "\nExtras: ");  strcat(features, extraFeatures?"enabled":"disabled");
+    strcat(features, "\nAdmin: ");   strcat(features, adminFeatures?"enabled":"disabled");
 
     CenteredBox(hwnd, features, "About", MB_OK);
 }
@@ -209,23 +213,30 @@ void grayRefreshButton(HWND hwnd, int gray) {
 }
 
 
-void showDownloadFeature(HWND hwnd, int show) {
-    TRACE("showDownloadButton");
+void showExtraFeatures(HWND hwnd, int show) {
+    TRACE("showExtraFeatures");
     
-    ShowWindow(GetDlgItem(hwnd, MAIN_DOWNLOAD_BTN),show);
+    extraFeatures = show;
+    ShowWindow(GetDlgItem(hwnd, MAIN_SAVE_BTN),show);    
     
 	if (show) {
 		DestroyMenu(listMenus);
-		listMenus = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(MAIN_LIST_MENU));		
+		listMenus = LoadMenu(plugin.hDllInstance,MAKEINTRESOURCE(MAIN_LIST_MENU));
 	} else {
-		RemoveMenu(listMenus, MAIN_LIST_DOWNLOAD_ITEM, MF_BYCOMMAND);
+		RemoveMenu(listMenus, MAIN_LIST_SAVE_ITEM, MF_BYCOMMAND);
+		showAdminFeatures(hwnd, false); // No extra features... no admin features
 	}
+}
+
+
+void showAdminFeatures(HWND hwnd, int show) {
+    TRACE("showAdminFeatures");
 }
 
 
 void grayDownloadButton(HWND hwnd, int gray) {
     TRACE("grayDownloadButton");    
-    EnableWindow(GetDlgItem(hwnd, MAIN_DOWNLOAD_BTN),!gray);
+    EnableWindow(GetDlgItem(hwnd, MAIN_SAVE_BTN),!gray);
 }
 
 
@@ -430,7 +441,7 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                  
                     EndDialog(configDlg,LOWORD(wParam) == IDOK);
                     if (changed || isConnectionFailed()) {
-                        library->download();
+                    	library->download();
                     }
                     break;                            
                 }
@@ -444,7 +455,7 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                 case CONFIG_REFRESH_BTN: {
                     TRACE("configDialogCallback::DLG_REFRESH");
                     library->clearCache();
-                    library->download();
+					library->download();					
                     break;                            
                 }    
                 case CONFIG_EMPTY_BTN: {
@@ -506,7 +517,7 @@ static int onListItemClick(HWND hwndParent) {
             library->enqueue();
             break;
             
-        case MAIN_LIST_DOWNLOAD_ITEM:
+        case MAIN_LIST_SAVE_ITEM:
             library->save();
             break;
     }            
@@ -515,7 +526,7 @@ static int onListItemClick(HWND hwndParent) {
 
 
 static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-//  TRACE("mainPageCallback");
+    // TRACE("mainPageCallback");
     
     if (wad_handleDialogMsgs) {
         BOOL a=wad_handleDialogMsgs(mainDlg,uMsg,wParam,lParam); if (a) return a;
@@ -539,7 +550,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
             *(void**)&cr_init                   =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,32,ML_IPC_SKIN_WADLG_GETFUNC);
             *(void**)&cr_resize                 =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,33,ML_IPC_SKIN_WADLG_GETFUNC);
       
-	      	showDownloadFeature(mainDlg, false);
+	      	showExtraFeatures(mainDlg, false);  // turning off also	turns off admin features
 	      	grayDownloadButton(mainDlg, true);  // This isn't working	      	
 
             if (cr_init) cr_init(mainDlg,main_resize_rlist,sizeof(main_resize_rlist)/sizeof(main_resize_rlist[0]));
@@ -672,134 +683,133 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
                         configuration.reverseDirection();
                     } else {
                         configuration.setSortColumn(p->iSubItem);
-                    }        
+                    }
                     library->sort();
                 }      
             }
         } 
         break;
     
-    case WM_COMMAND:
-        switch(LOWORD(wParam)) {
-            case MAIN_CLEAR_BTN: {
-                TRACE("mainPageCallback/DLG_CLEAR");
-                SetDlgItemText(mainDlg,MAIN_SEARCH_FIELD,"");
-                break;
-            }
-            case MAIN_PLAY_BTN: {
-                TRACE("mainPageCallback/DLG_PLAY");
-                library->play();
-                break;
-            }
-            case MAIN_DOWNLOAD_BTN: {
-                TRACE("mainPageCallback/DLG_DOWNLOAD");
-                library->save();
-                break;
-            }
-            case MAIN_ENQUEUE_BTN: {
-                TRACE("mainPageCallback/DLG_ENQUEUE");
-                library->enqueue();
-                break;
-            }
-            case MAIN_REFRESH_BTN: {
-                TRACE("mainPageCallback/DLG_REFRESH2");
-                library->clearCache();
-                library->download();
-                break;
-            }
-            case MAIN_ABORT_BTN: {
-                TRACE("mainPageCallback/DLG_ABORT");
-                library->abort();                
-                break;
-            }
-            case MAIN_CONFIG_BTN: {
-                TRACE("mainPageCallback/DLG_CONFIG");
-                configDialog(mainDlg);
-                break;
-            }
-            case MAIN_SEARCH_FIELD:                
-                if (HIWORD(wParam) == EN_CHANGE) {
-                    TRACE("mainPageCallback/DLG_SEARCH");
-                    KillTimer(mainDlg,SEARCH_TIMER);
-                    SetTimer (mainDlg,SEARCH_TIMER,SEARCH_DURATION,NULL);
-                }
-                break;
-        }
-        break;
+    	case WM_COMMAND:
+        	switch(LOWORD(wParam)) {
+            	case MAIN_CLEAR_BTN: {
+                	TRACE("mainPageCallback/DLG_CLEAR");
+	                SetDlgItemText(mainDlg,MAIN_SEARCH_FIELD,"");
+	                break;
+	            }
+	            case MAIN_PLAY_BTN: {
+	                TRACE("mainPageCallback/DLG_PLAY");
+	                library->play();
+	                break;
+	            }
+	            case MAIN_SAVE_BTN: {
+	                TRACE("mainPageCallback/DLG_SAVE");
+	                library->save();
+	                break;
+	            }
+	            case MAIN_ENQUEUE_BTN: {
+	                TRACE("mainPageCallback/DLG_ENQUEUE");
+	                library->enqueue();
+	                break;
+	            }
+	            case MAIN_REFRESH_BTN: {
+	                TRACE("mainPageCallback/DLG_REFRESH2");
+	                library->clearCache();
+					library->download();
+	                break;
+	            }
+	            case MAIN_ABORT_BTN: {
+	                TRACE("mainPageCallback/DLG_ABORT");
+	                library->abort();
+	                break;
+	            }
+	            case MAIN_CONFIG_BTN: {
+	                TRACE("mainPageCallback/DLG_CONFIG");
+	                configDialog(mainDlg);
+	                break;
+	            }
+	            case MAIN_SEARCH_FIELD:                
+	                if (HIWORD(wParam) == EN_CHANGE) {
+	                    TRACE("mainPageCallback/DLG_SEARCH");
+	                    KillTimer(mainDlg,SEARCH_TIMER);
+	                    SetTimer (mainDlg,SEARCH_TIMER,SEARCH_DURATION,NULL);
+	                }
+	                break;
+	        }
+			break;
       
-    case WM_TIMER:
-        if (wParam == SEARCH_TIMER) {
-            TRACE("mainPageCallback/SEARCH_TIMER");
-            KillTimer(mainDlg,SEARCH_TIMER);
-            char filter[256];
-            GetDlgItemText(mainDlg,MAIN_SEARCH_FIELD,filter,sizeof(filter));
-            filter[255]=0;
-            configuration.setFilter(filter);
-            library->display();
-            
-        } else if (wParam == DOWNLOAD_TIMER) {
-            TRACE("mainPageCallback/DOWNLOAD_TIMER");
-            KillTimer(mainDlg,DOWNLOAD_TIMER);
-            library->download();
-
-        } else if (wParam == UPGRADE_TIMER) {
-            TRACE("mainPageCallback/UPGRADE_TIMER");
-            KillTimer(mainDlg,UPGRADE_TIMER);
-            library->downloadUpgrade();
-        }
-        break;
+	    case WM_TIMER:
+	        if (wParam == SEARCH_TIMER) {
+	            TRACE("mainPageCallback/SEARCH_TIMER");
+	            KillTimer(mainDlg,SEARCH_TIMER);
+	            char filter[256];
+	            GetDlgItemText(mainDlg,MAIN_SEARCH_FIELD,filter,sizeof(filter));
+	            filter[255]=0;
+	            configuration.setFilter(filter);
+	            library->display();
+	            
+	        } else if (wParam == DOWNLOAD_TIMER) {
+	            TRACE("mainPageCallback/DOWNLOAD_TIMER");
+	            KillTimer(mainDlg,DOWNLOAD_TIMER);
+	            library->download();
+	
+	        } else if (wParam == UPGRADE_TIMER) {
+	            TRACE("mainPageCallback/UPGRADE_TIMER");
+	            KillTimer(mainDlg,UPGRADE_TIMER);
+	            library->downloadUpgrade();
+	        }
+	        break;
         
-    case WM_SIZE:
-        if (wParam != SIZE_MINIMIZED) {
-            if (cr_resize) cr_resize(mainDlg,main_resize_rlist,sizeof(main_resize_rlist)/sizeof(main_resize_rlist[0]));
-        }
-        break;
-      
-    case WM_PAINT: {
-            int tab[] = { MAIN_SEARCH_FIELD|DCW_SUNKENBORDER, MAIN_LIST|DCW_SUNKENBORDER};
-            if (wad_DrawChildWindowBorders) wad_DrawChildWindowBorders(mainDlg,tab,2);
-        }
-        return 0;
-      
-    case WM_DESTROY:
-        SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,skinlistViewId,ML_IPC_UNSKIN_LISTVIEW);
-        return 0;
+	    case WM_SIZE:
+	        if (wParam != SIZE_MINIMIZED) {
+	            if (cr_resize) cr_resize(mainDlg,main_resize_rlist,sizeof(main_resize_rlist)/sizeof(main_resize_rlist[0]));
+	        }
+	        break;
+	      
+	    case WM_PAINT: {
+	            int tab[] = { MAIN_SEARCH_FIELD|DCW_SUNKENBORDER, MAIN_LIST|DCW_SUNKENBORDER};
+	            if (wad_DrawChildWindowBorders) wad_DrawChildWindowBorders(mainDlg,tab,2);
+	        }
+	        return 0;
+	      
+	    case WM_DESTROY:
+	        SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,skinlistViewId,ML_IPC_UNSKIN_LISTVIEW);
+	        return 0;
 
-    case WM_LBUTTONUP:
-        if (GetCapture() == mainDlg) {
-            TRACE("mainPageCallback/WM_LBUTTONUP");
-            ReleaseCapture();
-
-            POINT p;
-            p.x=GET_X_LPARAM(lParam);
-            p.y=GET_Y_LPARAM(lParam);
-            ClientToScreen(mainDlg,&p);
-    
-            HWND h=WindowFromPoint(p);
-            if (h != mainDlg && !IsChild(mainDlg,h)) {
-                library->drop(p);
-            }           
-        }
-        break;
+	    case WM_LBUTTONUP:
+	        if (GetCapture() == mainDlg) {
+	            TRACE("mainPageCallback/WM_LBUTTONUP");
+	            ReleaseCapture();
+	
+	            POINT p;
+	            p.x=GET_X_LPARAM(lParam);
+	            p.y=GET_Y_LPARAM(lParam);
+	            ClientToScreen(mainDlg,&p);
+	    
+	            HWND h=WindowFromPoint(p);
+	            if (h != mainDlg && !IsChild(mainDlg,h)) {
+	                library->drop(p);
+	            }           
+	        }
+	        break;
       
-    case WM_MOUSEMOVE:
-        if (GetCapture()==mainDlg) {
-            POINT p;
-            p.x=GET_X_LPARAM(lParam);
-            p.y=GET_Y_LPARAM(lParam);
-            ClientToScreen(mainDlg,&p);
-            mlDropItemStruct m={ML_TYPE_ITEMRECORDLIST,NULL,0};
-            m.p=p;
-            HWND h=WindowFromPoint(p);
-            if (!h || h == mainDlg || IsChild(mainDlg,h)) {
-                SetCursor(LoadCursor(NULL,IDC_NO));
-            } else {       
-                SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,(WPARAM)&m,ML_IPC_HANDLEDRAG);
-            }
-        }
-        break;
-    }
-  
+	    case WM_MOUSEMOVE:
+	        if (GetCapture()==mainDlg) {
+	            POINT p;
+	            p.x=GET_X_LPARAM(lParam);
+	            p.y=GET_Y_LPARAM(lParam);
+	            ClientToScreen(mainDlg,&p);
+	            mlDropItemStruct m={ML_TYPE_ITEMRECORDLIST,NULL,0};
+	            m.p=p;
+	            HWND h=WindowFromPoint(p);
+	            if (!h || h == mainDlg || IsChild(mainDlg,h)) {
+	                SetCursor(LoadCursor(NULL,IDC_NO));
+	            } else {       
+	                SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,(WPARAM)&m,ML_IPC_HANDLEDRAG);
+	            }
+	        }
+	        break;    
+	}  
     return 0;
 }
 
@@ -824,7 +834,7 @@ static BOOL CALLBACK authDialogCallback(HWND authDlg, UINT uMsg, WPARAM wParam, 
                     GetDlgItemText(authDlg,AUTH_PASSWORD_FIELD,tmp,sizeof(tmp));
                      configuration.setPassword(tmp);
                      httpSession->setPassword(tmp);      
-                    library->download();                     
+                    library->download();
                     EndDialog(authDlg,LOWORD(wParam) == IDOK);                  
                     break; 
                 }    
@@ -849,14 +859,14 @@ static int onTreeItemClick(int selTreeId, int action, HWND hwndParent) {
     if (action == ML_ACTION_RCLICK) {
         TRACE("onTreeItemClick/ML_ACTION_RCLICK");
         POINT p;
-        int r;
-        GetCursorPos(&p);
+        int   r;
+        HMENU menu;
+
+        if (treeId == selTreeId) menu = GetSubMenu(rootMenus, 0);
+        else                     menu = GetSubMenu(childMenus,0);
         
-        if (treeId == selTreeId) {
-        	r = TrackPopupMenu(GetSubMenu(rootMenus,0),TPM_RETURNCMD|TPM_RIGHTBUTTON|TPM_LEFTBUTTON|TPM_NONOTIFY,p.x,p.y,0,hwndParent,NULL);
-        } else {
-        	r = TrackPopupMenu(GetSubMenu(childMenus,0),TPM_RETURNCMD|TPM_RIGHTBUTTON|TPM_LEFTBUTTON|TPM_NONOTIFY,p.x,p.y,0,hwndParent,NULL);
-        }
+       	GetCursorPos(&p);
+        r = TrackPopupMenu(menu,TPM_RETURNCMD|TPM_RIGHTBUTTON|TPM_LEFTBUTTON|TPM_NONOTIFY,p.x,p.y,0,hwndParent,NULL);
         
         switch (r) {
             case TREE_ABOUT_ITEM:
@@ -869,14 +879,14 @@ static int onTreeItemClick(int selTreeId, int action, HWND hwndParent) {
                 
             case TREE_PLAY_ITEM: {
             	TRACE("onTreeItemClick/TREE_PLAY_ITEM");
-            	library->setTreeId(selTreeId, hwndParent);
+            	SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,(WPARAM)selTreeId,ML_IPC_SETCURTREEITEM);
             	library->play();
             	break;
             }            	
             case TREE_ENQUEUE_ITEM: {
             	TRACE("onTreeItemClick/TREE_ENQUEUE_ITEM");
-            	library->setTreeId(selTreeId, hwndParent);
-            	library->enqueue();
+            	SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,(WPARAM)selTreeId,ML_IPC_SETCURTREEITEM);
+				library->enqueue();
             	break;
             }            
         }            
