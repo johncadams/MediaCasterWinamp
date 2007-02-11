@@ -20,11 +20,6 @@ using namespace std;
 #include "date.h"
 
 
-// Timer IDs
-#define SEARCH_TIMER        500
-#define DOWNLOAD_TIMER      600
-#define UPGRADE_TIMER       700
-
 #define SEARCH_DURATION      64
 #define DOWNLOAD_DURATION   150
 #define UPDATE_DURATION     150
@@ -319,10 +314,10 @@ static void quit() {
 }
 
 
-static void searchTimerCallback(HWND hwnd, UINT msg, UINT_PTR id, DWORD dwTime) {
+static VOID CALLBACK searchTimerCallback(HWND hwnd, UINT msg, UINT_PTR id, DWORD dwTime) {
 	TRACE("searchTimerCallback");
-    KillTimer(hwnd,SEARCH_TIMER);
     char filter[256];
+    KillTimer(hwnd,id);
     GetDlgItemText(hwnd, MAIN_SEARCH_FIELD, filter, sizeof(filter));
     filter[255]=0;
     configuration.setFilter(filter);
@@ -330,17 +325,10 @@ static void searchTimerCallback(HWND hwnd, UINT msg, UINT_PTR id, DWORD dwTime) 
 }
 
 
-static void downloadTimerCallback(HWND hwnd, UINT msg, UINT_PTR id, DWORD dwTime) {
+static VOID CALLBACK downloadTimerCallback(HWND hwnd, UINT msg, UINT_PTR id, DWORD dwTime) {
 	TRACE("downloadTimerCallback");
-    KillTimer(hwnd,DOWNLOAD_TIMER);
+	KillTimer(hwnd,id);
     library->download();
-}
-
-
-static void upgradeTimerCallback(HWND hwnd, UINT msg, UINT_PTR id, DWORD dwTime) {
-    TRACE("upgradeTimerCallback");
-    KillTimer(hwnd,UPGRADE_TIMER);
-    library->downloadUpgrade();
 }
 
 
@@ -635,7 +623,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
             if (!hasLoaded || isConnectionFailed()) {
                 // Defer the loading until we have completly initialized the screen
                 hasLoaded = 1;
-                SetTimer(mainDlg,DOWNLOAD_TIMER,DOWNLOAD_DURATION,NULL);
+                SetTimer(0,0,DOWNLOAD_DURATION,downloadTimerCallback);
             }
 
             return 0;
@@ -767,7 +755,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
 	                TRACE("mainPageCallback/DLG_SAVE");
 	                library->save();
 	                // This resets the status message in 30secs
-	                SetTimer(mainDlg,SEARCH_TIMER, 30*1000, 0);
+	                SetTimer(0,0, 30*1000, searchTimerCallback);
 	                break;
 	            }
 	            case MAIN_ENQUEUE_BTN: {
@@ -793,35 +781,12 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
 	            case MAIN_SEARCH_FIELD:                
 	                if (HIWORD(wParam) == EN_CHANGE) {
 	                    TRACE("mainPageCallback/DLG_SEARCH");
-	                    KillTimer(mainDlg,SEARCH_TIMER);
-	                    SetTimer (mainDlg,SEARCH_TIMER,SEARCH_DURATION,NULL);
+	                    SetTimer(0,0,SEARCH_DURATION,searchTimerCallback);
 	                }
 	                break;
 	        }
 			break;
       
-	    case WM_TIMER:
-	        if (wParam == SEARCH_TIMER) {
-	            TRACE("mainPageCallback/SEARCH_TIMER");
-	            KillTimer(mainDlg,SEARCH_TIMER);
-	            char filter[256];
-	            GetDlgItemText(mainDlg,MAIN_SEARCH_FIELD,filter,sizeof(filter));
-	            filter[255]=0;
-	            configuration.setFilter(filter);
-	            library->display();
-	            
-	        } else if (wParam == DOWNLOAD_TIMER) {
-	            TRACE("mainPageCallback/DOWNLOAD_TIMER");
-	            KillTimer(mainDlg,DOWNLOAD_TIMER);
-	            library->download();
-	
-	        } else if (wParam == UPGRADE_TIMER) {
-	            TRACE("mainPageCallback/UPGRADE_TIMER");
-	            KillTimer(mainDlg,UPGRADE_TIMER);
-	            library->downloadUpgrade();
-	        }
-	        break;
-        
 	    case WM_SIZE:
 	        if (wParam != SIZE_MINIMIZED) {
 	            if (cr_resize) cr_resize(mainDlg,main_resize_rlist,sizeof(main_resize_rlist)/sizeof(main_resize_rlist[0]));
