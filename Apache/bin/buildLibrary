@@ -1,0 +1,9 @@
+#!/bin/sh
+
+APACHE_HOME=/usr/local/apache
+APACHE_HTDOCS=${APACHE_HOME}/htdocs
+MCASTER_HTDOCS=${APACHE_HTDOCS}/mcaster
+TMP_FILE=/tmp/library.$$
+
+./getMlData.pl >${TMP_FILE}
+[ $? = 0 ] && mv ${TMP_FILE} ${MCASTER_HTDOCS}

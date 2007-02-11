@@ -1,0 +1,12 @@
+#!/bin/sh
+
+[ "$1" = "" ] && echo "usage $0: <m3u>" && exit
+
+URL="http://mcaster.kicks-ass.net:9000/mp3/"
+URL="/mp3/"
+
+tmp=tmp.$$
+sed -e "s|.*My Music\\\|$URL|g" "$1" |\
+sed -e "s|Christmas\\\|Christmas/|g" |\
+sed    "/^#EXT/!s/[ ]/%20/g" |\
+sed    "/^#EXT/!s/[#]/%23/g"
