@@ -217,7 +217,7 @@ void showExtraFeatures(HWND hwnd, int show) {
     TRACE("showExtraFeatures");
     
     extraFeatures = show;
-    ShowWindow(GetDlgItem(hwnd, MAIN_SAVE_BTN),show);    
+    ShowWindow(GetDlgItem(hwnd, MAIN_SAVE_BTN),show);
     
 	if (show) {
 		DestroyMenu(listMenus);
@@ -330,6 +330,20 @@ static void searchTimerCallback(HWND hwnd, UINT msg, UINT_PTR id, DWORD dwTime) 
 }
 
 
+static void downloadTimerCallback(HWND hwnd, UINT msg, UINT_PTR id, DWORD dwTime) {
+	TRACE("downloadTimerCallback");
+    KillTimer(hwnd,DOWNLOAD_TIMER);
+    library->download();
+}
+
+
+static void upgradeTimerCallback(HWND hwnd, UINT msg, UINT_PTR id, DWORD dwTime) {
+    TRACE("upgradeTimerCallback");
+    KillTimer(hwnd,UPGRADE_TIMER);
+    library->downloadUpgrade();
+}
+
+
 static int CALLBACK folderSelectionDialogCallback(HWND hwnd,UINT uMsg, LPARAM lParam, LPARAM lpData) {
 	TRACE("folderSelectionDialogCallback");
 	// If the BFFM_INITIALIZED message is received
@@ -345,7 +359,7 @@ static int CALLBACK folderSelectionDialogCallback(HWND hwnd,UINT uMsg, LPARAM lP
 }
 
 
-char* folderSelectionDialog(HWND hwnd, const char* currDir) {
+char* folderSelectionDialog(HWND hwnd, const char* message, const char* currDir) {
 	TRACE("folderSelectionDialog");
 	BROWSEINFO   bi = { 0 };
 	LPITEMIDLIST pidl;
@@ -355,7 +369,7 @@ char* folderSelectionDialog(HWND hwnd, const char* currDir) {
 
 	bi.hwndOwner      = hwnd;
 	bi.pszDisplayName = szDisplay;
-	bi.lpszTitle      = TEXT(DIRECTORY_CHOOSER);
+	bi.lpszTitle      = TEXT(message);
 	bi.ulFlags        = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
 	bi.lpfn           = folderSelectionDialogCallback;
 	bi.lParam         = (LPARAM) currDir;
@@ -369,10 +383,46 @@ char* folderSelectionDialog(HWND hwnd, const char* currDir) {
 	}
 
 	if (!retval) {
-		rtnPath[0] = '\0';
+		return NULL;
 	}
 	
 	return strdup(rtnPath);
+}
+
+
+static BOOL CALLBACK advancedDialogCallback(HWND advDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	TRACE("advancedDialogCallback");
+	switch (uMsg) {
+        case WM_INITDIALOG:
+        	SetDlgItemText(advDlg, ADVANCED_SAVEDIR_FIELD, configuration.getSaveDir());
+        	break;
+        
+        case WM_COMMAND:
+            switch (LOWORD(wParam)) {
+            	case ADVANCED_BROWSE_BTN:
+            		char* dir;
+            		dir = folderSelectionDialog(advDlg,MP3_DIRECTORY_CHOOSER,configuration.getSaveDir());
+            		if (dir) SetDlgItemText(advDlg, ADVANCED_SAVEDIR_FIELD, dir);
+            		break;
+            		
+            	case IDOK: {
+                    TRACE("advancedDialogCallback::IDOK");
+                    char tmp[1024];
+                    GetDlgItemText(advDlg,ADVANCED_SAVEDIR_FIELD,tmp,sizeof(tmp));
+                    configuration.setSaveDir(tmp);
+                    EndDialog(advDlg,LOWORD(wParam) == IDOK);
+                }
+	        	case IDCANCEL:
+		            EndDialog(advDlg,LOWORD(wParam) == IDOK);
+            }
+	}
+	return 0;
+}	
+
+	
+void advancedDialog(HWND hwnd) {
+    TRACE("advancedDialog");
+    DialogBox(plugin.hDllInstance,MAKEINTRESOURCE(ADVANCED_DIALOG),hwnd,advancedDialogCallback);
 }
 
 
@@ -397,7 +447,6 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
             SetDlgItemText(configDlg, CONFIG_PORT_FIELD,     configuration.getPort());
             SetDlgItemText(configDlg, CONFIG_USERNAME_FIELD, configuration.getUser());
             SetDlgItemText(configDlg, CONFIG_PASSWORD_FIELD, configuration.getPassword());
-            SetDlgItemText(configDlg, CONFIG_SAVEDIR_FIELD,  configuration.getSaveDir());
             CheckDlgButton(configDlg, CONFIG_UPGRADE_CHECK,  configuration.isAutoUpdate()?BST_CHECKED:BST_UNCHECKED);
             
             int j = 0;
@@ -408,10 +457,10 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
             SendDlgItemMessage(configDlg, CONFIG_BITRATE_SELECT, CB_SETCURSEL,        j,  0);
             SendDlgItemMessage(configDlg, CONFIG_PASSWORD_FIELD, EM_SETPASSWORDCHAR, '*', 0);
             
-            HWND button = GetDlgItem(configDlg, CONFIG_UPGRADE_BTN);
             SetDlgItemText(configDlg, CONFIG_UPGRADE_TEXT, upgradeMsg);
-            EnableWindow(button, upgradeAvailable);
-            
+            EnableWindow(GetDlgItem(configDlg,CONFIG_UPGRADE_BTN), upgradeAvailable);            
+            ShowWindow(GetDlgItem(configDlg,CONFIG_ADV_BTN), extraFeatures);
+	      	            
             return 0;
         }
 
@@ -441,10 +490,6 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                      configuration.setPassword(tmp);
                      httpSession->setPassword(tmp);
                      
-                    GetDlgItemText(configDlg,CONFIG_SAVEDIR_FIELD,tmp,sizeof(tmp));
-                     changed |= (strcmp(tmp,configuration.getSaveDir())!=0);
-                     configuration.setSaveDir(tmp);
-                     
                     GetDlgItemText(configDlg,CONFIG_BITRATE_SELECT,tmp,sizeof(tmp));
                      for (int i=0; i<bitratesSize; i++) {
                         if (strcmp(bitrates[i][0], tmp)==0) {
@@ -461,14 +506,6 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                     }
                     break;                            
                 }
-                case CONFIG_SAVEDIR_BTN: {
-                    TRACE("configDialogCallback::DLG_DOWNLOAD");
-                    char* dir = folderSelectionDialog(configDlg, NULL);
-					configuration.setSaveDir(dir);
-					SetDlgItemText(configDlg, CONFIG_SAVEDIR_FIELD, configuration.getSaveDir());
-					delete dir;                  
-                    break;                            
-                }   
                 case CONFIG_REFRESH_BTN: {
                     TRACE("configDialogCallback::DLG_REFRESH");
                     library->clearCache();
@@ -486,6 +523,12 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
                     EndDialog(configDlg,LOWORD(wParam) == IDOK);
                     library->downloadUpgrade();
                     break;                               
+                }
+                case CONFIG_ADV_BTN: {
+                	TRACE("configDialogCallback::DLG_UPGRADE");
+					EndDialog(configDlg,LOWORD(wParam) == IDOK);
+					advancedDialog(configDlg);
+                	break;
                 }
                 case IDCANCEL:
                     EndDialog(configDlg,LOWORD(wParam) == IDOK);
@@ -514,7 +557,7 @@ static BOOL CALLBACK configDialogCallback(HWND configDlg, UINT uMsg, WPARAM wPar
 
 void configDialog(HWND hwnd) {
     TRACE("configDialog");
-    DialogBox(plugin.hDllInstance, MAKEINTRESOURCE(CONFIG_DIALOG), hwnd, configDialogCallback);
+    DialogBox(plugin.hDllInstance,MAKEINTRESOURCE(CONFIG_DIALOG),hwnd,configDialogCallback);
 }
 
 

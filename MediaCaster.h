@@ -46,7 +46,7 @@ extern void  aboutBox                (HWND);
 extern void  fileIoProblemBox        (HWND, const char*, const char*);
 extern void  connectionProblemBox    (HWND, const char*);
 extern void  newFeatureBox           (HWND, const char*, int&);
-extern char* folderSelectionDialog   (HWND, const char*);
+extern char* folderSelectionDialog   (HWND, const char*, const char*);
 extern void  setStatusMessage        (HWND, const char*);
 extern void  showAbortButton         (HWND, int);
 extern void  grayRefreshButton       (HWND, int);

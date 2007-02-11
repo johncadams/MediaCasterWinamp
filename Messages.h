@@ -32,7 +32,7 @@
                                 "   3) Execute the installer\n"\
                                 "   4) Re-enable Auto-Update (Config dialog)"
 
-#define DIRECTORY_CHOOSER       "Please choose a folder."
+#define MP3_DIRECTORY_CHOOSER   "Select MP3 download directory"
         
 /* Used in the status bar */
 #define CONNECTING              "[Connecting...]"

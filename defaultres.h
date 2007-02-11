@@ -9,8 +9,7 @@
 #define CONFIG_UPGRADE_TEXT     6006
 #define CONFIG_HOST_FIELD       6001
 #define CONFIG_UPGRADE_BTN      6011
-#define CONFIG_SAVEDIR_BTN      6012
-#define CONFIG_SAVEDIR_FIELD    6014
+#define CONFIG_ADV_BTN          6012
 #define ABOUT_DIALOG            4000
 #define ABOUT_TEXT              4001
 #define AUTH_DIALOG             9000
@@ -26,6 +25,9 @@
 #define MAIN_STATUS_TEXT        8007
 #define MAIN_CONFIG_BTN         8008
 #define MAIN_SAVE_BTN           8010
+#define ADVANCED_DIALOG         1000
+#define ADVANCED_BROWSE_BTN     1002
+#define ADVANCED_SAVEDIR_FIELD  1005
 #define MAIN_LIST_MENU          3000
 #define MAIN_LIST_PLAY_ITEM     3001
 #define MAIN_LIST_ENQUEUE_ITEM  3002

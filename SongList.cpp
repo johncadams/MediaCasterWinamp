@@ -177,7 +177,10 @@ void SongList::save(HWND hwnd) const {
 				string  path     = configuration.getSaveDir();
 				
 				if (path.length() == 0) {
-					char* dir = folderSelectionDialog(hwnd, NULL);
+					char* dir = folderSelectionDialog(hwnd, MP3_DIRECTORY_CHOOSER, NULL);
+					if (!dir) {
+						return;
+					}
 					configuration.setSaveDir(dir);
 					path = configuration.getSaveDir();
 					delete dir;
