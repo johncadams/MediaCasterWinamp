@@ -164,7 +164,7 @@ void SongList::save(HWND hwnd) const {
     TRACE("SongList::save"); 
     
     try {
-	    int i = 0;
+	    int  i = 0;	    
 		for (int x=0; x<songList->GetSize(); x++) {
 			int numSel = ListView_GetSelectedCount(listView.getwnd());
 	        if (listView.GetSelected(x)) {
@@ -197,14 +197,15 @@ void SongList::save(HWND hwnd) const {
 	    		int  total = 0;
 	    		i++;
 			    while( (cnt=httpGet.read(bytes, sizeof(bytes))) ) {
-	        		total += cnt;
-	        		char status[256];
+	        		total += cnt;	
+	        		char status[256];        		
 	        		sprintf(status, MP3_DOWNLOAD, i, numSel, int( float(total*100./httpGet.contentLen())) );
 	        		setStatusMessage(hwnd, status);         
 	    		}    		
 	    		delete filename;
 	        }
 		}
+		setStatusMessage(hwnd, MP3_DOWNLOAD_DONE); 
 	        
     } catch (HTTPAuthenticationException& ex) {
         CATCH(ex);

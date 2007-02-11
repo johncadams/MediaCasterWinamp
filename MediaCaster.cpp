@@ -33,7 +33,7 @@ using namespace std;
 static CasterLibrary*     library;
 static int                hasLoaded     = 0;
 static int                connFailed    = 0;
-static int                extraFeatures = 1;
+static int                extraFeatures = 0;
 static int                adminFeatures = 0;
 static int                downloading   = 0;
 static int                treeId;
@@ -319,6 +319,17 @@ static void quit() {
 }
 
 
+static void searchTimerCallback(HWND hwnd, UINT msg, UINT_PTR id, DWORD dwTime) {
+	TRACE("searchTimerCallback");
+    KillTimer(hwnd,SEARCH_TIMER);
+    char filter[256];
+    GetDlgItemText(hwnd, MAIN_SEARCH_FIELD, filter, sizeof(filter));
+    filter[255]=0;
+    configuration.setFilter(filter);
+    library->display();
+}
+
+
 static int CALLBACK folderSelectionDialogCallback(HWND hwnd,UINT uMsg, LPARAM lParam, LPARAM lpData) {
 	TRACE("folderSelectionDialogCallback");
 	// If the BFFM_INITIALIZED message is received
@@ -556,7 +567,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
             *(void**)&cr_init                   =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,32,ML_IPC_SKIN_WADLG_GETFUNC);
             *(void**)&cr_resize                 =(void*)SendMessage(plugin.hwndLibraryParent,WM_ML_IPC,33,ML_IPC_SKIN_WADLG_GETFUNC);
       
-	      	showExtraFeatures(mainDlg, false);  // turning off also	turns off admin features
+	      	showExtraFeatures(mainDlg, extraFeatures);  // turning off also	turns off admin features
 	      	grayDownloadButton(mainDlg, true);  // This isn't working	      	
 
             if (cr_init) cr_init(mainDlg,main_resize_rlist,sizeof(main_resize_rlist)/sizeof(main_resize_rlist[0]));
@@ -589,11 +600,11 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
         case WM_NOTIFY: {            
             LPNMHDR l=(LPNMHDR)lParam;
             if (l->idFrom==MAIN_LIST) {
-/*
+
             	int count = ListView_GetSelectedCount(listView.getwnd());
             	LOGGER("Selected", count);
             	grayDownloadButton(mainDlg,count==0);
-*/
+
             	if (l->code == (UINT)NM_RCLICK) {
             		TRACE("mainPageCallback/NM_RLCLK");
             		onListItemClick(mainDlg);
@@ -697,6 +708,7 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
         break;
     
     	case WM_COMMAND:
+	    	{ TRACE("mainPageCallback/WM_COMMAND"); }
         	switch(LOWORD(wParam)) {
             	case MAIN_CLEAR_BTN: {
                 	TRACE("mainPageCallback/DLG_CLEAR");
@@ -711,6 +723,8 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
 	            case MAIN_SAVE_BTN: {
 	                TRACE("mainPageCallback/DLG_SAVE");
 	                library->save();
+	                // This resets the status message in 30secs
+	                SetTimer(mainDlg,SEARCH_TIMER, 30*1000, 0);
 	                break;
 	            }
 	            case MAIN_ENQUEUE_BTN: {

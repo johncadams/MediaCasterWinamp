@@ -39,7 +39,8 @@
 #define CONNECTED_UPDATING      "[Connected] Checking for updates"
 #define DISPLIST_DOWNLOAD       "[Connected] Retrieving list: %3d%%"
 #define INSTALLER_DOWNLOAD      "[Connected] Adding new features: %3d%%"
-#define MP3_DOWNLOAD            "[Connected] Downloading: [%d/%d] %3d%%"
+#define MP3_DOWNLOAD            "[Connected] Downloading mp3: [%d/%d] %3d%%"
+#define MP3_DOWNLOAD_DONE       "Download complete"
 
 #define NUMITEMS_NODAYS         "%d items [%d:%02d:%02d]"
 #define NUMITEMS_WDAYS          "%d items [%d days+%d:%02d:%02d]"
