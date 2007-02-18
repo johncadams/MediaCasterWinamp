@@ -14,7 +14,7 @@
 !include WinMessages.nsh
 
 !ifndef DIR
-!define DIR "Release"
+!define DIR "."
 !endif
 
 ; The name of the installer

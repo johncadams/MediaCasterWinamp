@@ -1,5 +1,6 @@
 SDK_PATH = ..\Winamp SDK 5.02
-DEFINES  = -DMC_VERSION=\"1.50BETA\" -DIS_BETA=1 -DDO_TRACING 
+VERSION  = 1.50BETA
+DEFINES  = -DMC_VERSION=\"$(VERSION)\" -DIS_BETA=1 -DDO_TRACING 
 
 CPP      = g++
 CC_OPTS  = -DWIN32 -D_WIN32_IE=0x0500 -D_WINDOWS $(DEFINES) -I"$(SDK_PATH)" -O0 -g -Wall -c -fmessage-length=0
@@ -24,7 +25,10 @@ OBJS :=\
 	default.o
 
 
-all: ml_mcaster.dll
+all: MediaCaster.exe
+
+MediaCaster.exe: ml_mcaster.dll MediaCaster.nsi
+	makensis /V1 MediaCaster.nsi
 
 ml_mcaster.dll: $(OBJS)
 	@echo 'Creating DLL: $@'
@@ -32,7 +36,7 @@ ml_mcaster.dll: $(OBJS)
 	@echo ' '
 
 clean:
-	rm -f $(OBJS) ml_mcaster.dll
+	rm -f $(OBJS) ml_mcaster.dll MediaCaster.exe
 
 default.o: default.rc
 	@echo 'Invoking: windres'
