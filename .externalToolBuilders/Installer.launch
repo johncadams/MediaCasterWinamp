@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launchConfiguration type="net.sf.eclipsensis.launch.nsisBuilderLaunchConfigType">
+<booleanAttribute key="noConfig" value="false"/>
+<booleanAttribute key="org.eclipse.debug.ui.ATTR_LAUNCH_IN_BACKGROUND" value="false"/>
+<booleanAttribute key="runInstaller" value="false"/>
+<stringAttribute key="script" value="${workspace_loc:/MediaCaster/MediaCaster.nsi}"/>
+<listAttribute key="instructions"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_RUN_BUILD_KINDS" value="full,incremental,"/>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<intAttribute key="verbosity" value="1"/>
+<booleanAttribute key="editedByExternalToolsMainTab" value="true"/>
+<booleanAttribute key="hdrInfo" value="false"/>
+<booleanAttribute key="org.eclipse.ui.externaltools.ATTR_TRIGGERS_CONFIGURED" value="true"/>
+<listAttribute key="symbols">
+<listEntry value="MC_VERSION­1.50BETA"/>
+<listEntry value="DIR­Release"/>
+</listAttribute>
+<booleanAttribute key="license" value="false"/>
+<booleanAttribute key="solidCompression" value="false"/>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/MediaCaster/MediaCaster.nsi"/>
+</listAttribute>
+<intAttribute key="compressor" value="0"/>
+<booleanAttribute key="noCD" value="false"/>
+</launchConfiguration>

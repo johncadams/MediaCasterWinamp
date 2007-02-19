@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?fileVersion 3.1.0?>
+
+<ManagedProjectBuildInfo>
+<project id="MediaCaster.cdt.managedbuild.target.gnu.cygwin.so.1264180369" name="Shared Library (Gnu on Windows)" projectType="cdt.managedbuild.target.gnu.cygwin.so">
+<configuration artifactExtension="dll" artifactName="ml_mcaster" cleanCommand="rm -rf" description="" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" id="cdt.managedbuild.config.gnu.cygwin.so.release.1230403231" name="Release" parent="cdt.managedbuild.config.gnu.cygwin.so.release">
+<toolChain id="cdt.managedbuild.toolchain.gnu.cygwin.so.release.1264711249" name="GCC Tool Chain" superClass="cdt.managedbuild.toolchain.gnu.cygwin.so.release">
+<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.so.release.1096397568" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.so.release">
+<option id="gnu.cpp.compiler.option.preprocessor.def.1386415310" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+<listOptionValue builtIn="false" value="MC_VERSION=\&quot;1.50BETA\&quot;"/>
+<listOptionValue builtIn="false" value="IS_BETA=1"/>
+<listOptionValue builtIn="false" value="DO_TRACING"/>
+<listOptionValue builtIn="false" value="WIN32"/>
+<listOptionValue builtIn="false" value="_WINDOWS"/>
+<listOptionValue builtIn="false" value="_WIN32_IE=0x500"/>
+</option>
+<option id="gnu.cpp.compiler.option.include.paths.1344783811" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Winamp SDK 5.02}&quot;"/>
+</option>
+<option id="gnu.cpp.compiler.cygwin.so.release.option.optimization.level.817797329" superClass="gnu.cpp.compiler.cygwin.so.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.cygwin.so.release.option.debugging.level.816538537" superClass="gnu.cpp.compiler.cygwin.so.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.default" valueType="enumerated"/>
+</tool>
+<tool id="cdt.managedbuild.tool.gnu.c.compiler.cygwin.so.release.924138887" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.cygwin.so.release"/>
+<tool id="cdt.managedbuild.tool.gnu.c.linker.cygwin.so.release.2035707888" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.cygwin.so.release"/>
+<tool id="cdt.managedbuild.tool.gnu.cpp.linker.cygwin.so.release.982706925" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.cygwin.so.release">
+<option id="gnu.cpp.link.option.libs.1915478414" superClass="gnu.cpp.link.option.libs" valueType="libs">
+<listOptionValue builtIn="false" value="winamp"/>
+<listOptionValue builtIn="false" value="wsock32"/>
+<listOptionValue builtIn="false" value="gdi32"/>
+</option>
+<option id="gnu.cpp.link.option.paths.2000519959" superClass="gnu.cpp.link.option.paths" valueType="stringList">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Winamp SDK 5.02/Release}&quot;"/>
+</option>
+</tool>
+<tool id="cdt.managedbuild.tool.gnu.assembler.cygwin.so.release.2050494887" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.cygwin.so.release"/>
+<macros/>
+</toolChain>
+<resourceConfiguration exclude="false" id="cdt.managedbuild.config.gnu.cygwin.so.release.1230403231./MediaCaster/default.rc" name="default.rc" rcbsApplicability="override" resourcePath="/MediaCaster/default.rc" toolsToInvoke="org.eclipse.cdt.managedbuilder.ui.rcbs.1103578950">
+<tool announcement="Invoking: Resource Builder" command="windres $&lt; -o$@" customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.1103578950" name="Resource Custom Build Step">
+<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.1724295224" name="Resource Custom Build Step Input Type">
+<additionalInput kind="additionalinputdependency" paths=""/>
+</inputType>
+<outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.1398575582" name="Resource Custom Build Step Output Type" outputNames="default.o"/>
+</tool>
+</resourceConfiguration>
+</configuration>
+<macros/>
+</project>
+</ManagedProjectBuildInfo>
