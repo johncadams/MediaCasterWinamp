@@ -230,7 +230,7 @@ void showAdminFeatures(HWND hwnd, int show) {
 
 
 void grayDownloadButton(HWND hwnd, int gray) {
-    TRACE("grayDownloadButton");    
+    // TRACE("grayDownloadButton");    
     EnableWindow(GetDlgItem(hwnd, MAIN_SAVE_BTN),!gray);
 }
 
@@ -633,7 +633,6 @@ static BOOL CALLBACK mainPageCallback(HWND mainDlg, UINT uMsg, WPARAM wParam, LP
             if (l->idFrom==MAIN_LIST) {
 
             	int count = ListView_GetSelectedCount(listView.getwnd());
-            	LOGGER("Selected", count);
             	grayDownloadButton(mainDlg,count==0);
 
             	if (l->code == (UINT)NM_RCLICK) {
