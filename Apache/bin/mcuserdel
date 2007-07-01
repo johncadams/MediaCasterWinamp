@@ -1,0 +1,16 @@
+#!/bin/sh
+
+ME="$0"
+BIN=`dirname $ME`
+MCASTER="$BIN/.."
+
+if [ "$#" != "1" ]; then
+   echo "Usage $ME: <username>"
+   exit 1;
+fi
+
+TMPF="/var/tmp/passwd.$$"
+
+if sed -e "/${1}:/d" $MCASTER/conf/passwords >$TMPF; then
+   mv $TMPF $MCASTER/conf/passwords
+fi

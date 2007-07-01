@@ -1,0 +1,22 @@
+#!/bin/sh
+
+ME="$0"
+BIN=`dirname $ME`
+MCASTER="$BIN/.."
+
+if [ $# -lt 2 ]; then
+   echo "Usage $ME: <username> [+download|-download]|[+admin|-admin]"
+   exit 1;
+fi
+
+USER="$1"
+TMPF="/var/tmp/passwd.$$"
+GRPS="$MCASTER/conf/groups"
+
+case "$2" in
+   "+a") sed -e "s|admin:|admin: ${1}|"       $GRPS >$TMPF;;
+   "+d") sed -e "s|download:|download: ${1}|" $GRPS >$TMPF;;
+   "-a") sed -e "/admin:/s| ${1}||g"          $GRPS >$TMPF;;
+   "-d") sed -e "/download/s| ${1}||g"        $GRPS >$TMPF;;
+esac
+mv $TMPF $GRPS

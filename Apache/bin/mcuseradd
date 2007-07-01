@@ -1,0 +1,12 @@
+#!/bin/sh
+
+ME="$0"
+BIN=`dirname $ME`
+MCASTER="$BIN/.."
+
+if [ "$#" != "1" ]; then
+   echo "Usage $ME: <username>"
+   exit 1;
+fi
+
+exec /usr/local/apache/bin/htpasswd $MCASTER/conf/passwords $1

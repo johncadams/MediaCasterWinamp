@@ -1,9 +1,14 @@
 #!/bin/sh
 
-APACHE_HOME=/usr/local/apache
-APACHE_HTDOCS=${APACHE_HOME}/htdocs
-MCASTER_HTDOCS=${APACHE_HTDOCS}/mcaster
-TMP_FILE=/tmp/library.$$
+ME="$0"
+BIN=`dirname $ME`
+MCASTER="$BIN/.."
 
-./getMlData.pl >${TMP_FILE}
-[ $? = 0 ] && mv ${TMP_FILE} ${MCASTER_HTDOCS}
+LIBR="$MCASTER/htdocs/library.txt"
+TMPF="/var/tmp/library.txt.$$"
+
+[ -f "$LIBR" ] || TMPF="$LIBR"
+
+if $BIN/getMlData.pl >$TMPF; then
+   mv $TMPF $LIBR
+fi

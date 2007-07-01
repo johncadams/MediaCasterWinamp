@@ -2,8 +2,8 @@
 
 [ "$1" = "" ] && echo "usage $0: <m3u>" && exit
 
-URL="http://mcaster.kicks-ass.net:9000/mp3/"
 URL="/mp3/"
+URL="/mcaster/web/"
 
 tmp=tmp.$$
 sed -e "s|.*My Music\\\|$URL|g" "$1" |\

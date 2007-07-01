@@ -1,50 +1,44 @@
+MediaCaster Server 1.50Beta
+===========================
+
+The MediaCaster Server is an extension to the Apache web server that serves two purposes.  To provide a mechanism for distributing MP3 content in a secure fashion.
+
+
+Operation
+=========
+
+
 Installation
 ============
-
-Apache 1.3.27:
-   apache-1.3.27-1dec.i686.rpm (472 K)
-   apache-devel-1.3.27-1dec.i686.rpm (100 K)
-   apache-manual-1.3.27-1dec.i686.rpm (856 K)
-
-Perl
-   Already on the DEC
-
-Apache::MP3
-   mod_perl-1.27-1dec.i686.rpm (844 K)
-   perl-Apache-MP3-3.03-1dec.noarch.rpm (160 K)
-   perl-Audio-Wav-0.02-1dec.noarch.rpm (28 K)
-   perl-I18N-LangTags-0.27-1dec.noarch.rpm (44 K)
-   perl-Locale-Maketext-1.03-1dec.noarch.rpm (80 K)
-   perl-MP3-Info-1.01-1dec.noarch.rpm (32 K)
-   perl-5.600-4mdk.i586.rpm (6432 K)
-
-LAME 3.92
-   lame-3.92-1dec.i686.rpm (464 K)
-   lame-devel-3.92-1dec.i686.rpm
-
-MediaCaster Server
-   ???
-
-Refer to http://hp-dec.skunkeye.com/ for more information on obtaining these RPMs.
+Simply install the required RPMs
 
 
+Configuration
+=============
+MediaCaster Server is pre-configured for an administrive user (admin:mcaster)
+and a regular user (user:nodwnld).  It is suggested that you change the
+passwords of these accounts as soon as possible.  The mcuseradd command can
+be used to perform this:
 
-How it works
-============
-The process bin/buildLibrary is executed which collects the MP3 tag information and
-deposits into the file htdocs/library.txt.  For large MP3 collections this greater improves
-performance but need to be run perdiocally to keep the data file up-to-date.  This can be
-accomplished via a cron task.
+   /usr/MCaster/bin/mcuseradd <username>
 
-Scheduling the library builder
-The file format for the htdocs/playlists.txt is:
-<Title>|<Type>|<PathOrExpr>
 
-Title      : AlphaNumeric (sans '|')
-Type       : 'm3u' or 'search' or 'search2' or #.*
-PathOrExpr : <Path> or <SearchExpr> or <Search2Expr>
-Path       : m3u file URL
-SearchExpr : simple any/all field search string (e.g. 'Beatles')
-Search2Expr: advanced search string (e.g. '? artist is Beatles and album has White')
+Additional user accounts can be added (or removed) as follows:
+   /usr/MCaster/bin/mcuseradd <username>
+   /usr/MCaster/bin/mcuserdel <username>
 
-If the first character for the type field is '#' the entry is ignored
+
+Users may also additional priveledges: administration, download.  You can
+add or remove priveledges as follows:
+   /usr/MCaster/bin/mcusermod <username> [+download|-download]|[+admin|-admin]
+
+
+Clients
+=======
+MediaCaster Server is ready to use for any web browser configured to play
+MP3 content via an extension (e.g. IE->Windows Media Player).  Simple
+point your browser at:
+   http://<server>/mcaster/web
+
+
+In addition there is a MediaCaster client plugin for Winamp.
