@@ -79,7 +79,6 @@ void Configuration::init(const char* rootDir) {
 	logging = GetPrivateProfileInt(CONFIG_SEC,LOGGING_PROPERTY, DEFAULT_LOGGING,iniPath);
 	threads = GetPrivateProfileInt(CONFIG_SEC,THREADS_PROPERTY, DEFAULT_THREADS,iniPath);
     updt    = GetPrivateProfileInt(CONFIG_SEC,UPDATE_PROPERTY,  DEFAULT_UPDATE, iniPath);
-    date    = GetPrivateProfileInt(CONFIG_SEC,DATE_PROPERTY,    DEFAULT_DATE,   iniPath);
     
     GetPrivateProfileString(CONFIG_SEC,HOST_PROPERTY,  DEFAULT_HOST, host,sizeof(host),iniPath);
     GetPrivateProfileString(CONFIG_SEC,PORT_PROPERTY,  DEFAULT_PORT, port,sizeof(port),iniPath);
@@ -216,15 +215,6 @@ void Configuration::setBitrate(const char* bitrate) {
     TRACE("Configuration::setBitrate");
     strcpy(Configuration::bitr, bitrate);
     WritePrivateProfileString(CONFIG_SEC, BITR_PROPERTY, bitr, iniPath);
-}
-
-
-void Configuration::setBuildDate(long date) {
-    TRACE("Configuration::setBuildDate");
-    Configuration::date = date;
-    char tmp[32];
-    sprintf(tmp, "%ld", date);
-    WritePrivateProfileString(CONFIG_SEC, TMPDATE_PROPERTY, tmp, iniPath);
 }
 
 

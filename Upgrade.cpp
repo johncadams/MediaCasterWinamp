@@ -43,11 +43,7 @@ void Upgrade::downloadFunction() throw (ConnectionException) {
 	// Don't really need to do this since the installer closes winamp        
 	// SendMessage(plugin.hwndLibraryParent, WM_ML_IPC, (WPARAM)&plugin, ML_IPC_REMOVE_PLUGIN);
 	
-	// This set a temporary timestamp that the installer copies into place assuming
-	// it works.
-	configuration.setBuildDate(httpGet.lastModified());
-    
-    string path    = httpGet.getCachedFile();
+	string path    = httpGet.getCachedFile();
     string cmdline = path +" /S /D=" +configuration.getWinampDir();
     int    rtn     = execForegroundProcess(cmdline.c_str());
 

@@ -26,7 +26,6 @@ class Configuration {
         char   bitr     [  32];
         char   mesg     [1024];
         char   sdir     [1024];
-        long   date;
         int    updt;
         int    logging;
         int    threads;
@@ -53,7 +52,7 @@ class Configuration {
         const char* getUser         () const { return user;      }
         const char* getPassword     () const { return pwrd;      }
         const char* getBitrate      () const { return bitr;      }
-        long        getBuildDate    () const { return date;      }
+        long        getBuildDate    () const { return atoi(BUILD_DATE);}
         int         isAutoUpdate    () const { return updt;      }         
         int         isLogging       () const { return logging;   }
         int         isThreaded      () const { return threads;   }
@@ -68,7 +67,6 @@ class Configuration {
         void        setUsername     (const char*);
         void        setPassword     (const char*);
         void        setBitrate      (const char*);
-        void        setBuildDate    (long);
         void        setAutoUpdate   (int);
         void        setLogging      (int);
         void        setThreaded     (int);
