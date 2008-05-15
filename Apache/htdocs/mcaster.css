@@ -1,0 +1,129 @@
+body {
+   color:            white;
+   background-color: #444499;
+}
+
+
+.content {
+   color:            lime;
+   background-color: black;
+   padding-left:     6px;
+   padding-right:    4px;
+}
+
+
+.item {
+   vertical-align:   top;
+}
+
+
+.selected {
+   background-color: #0000aa;
+   padding-left:     6px;
+   padding-right:    4px;
+}
+
+
+.dropzone {
+   color:            #222222;
+}
+
+
+.drag {
+   border-width:     1px;
+   border-style:     solid;
+   border-color:     white darkblue darkblue white;
+}
+
+
+.status {
+}
+
+
+.config {
+}
+
+
+.link {
+   color:            white;
+   text-decoration:  none;
+}
+
+
+.copyright {
+   color:            darkblue;
+   font-size:        7pt;
+   text-align:       center;
+}
+
+
+.gutter {
+   width:            5px;
+   height:           5px;
+}
+
+
+.disable {
+   display:          none;
+}
+
+
+.button {
+   width:            75px;
+}
+
+.heading {
+   color:            white;
+   background-color: #444499;
+   padding-left:     4px;
+   padding-right:    2px;
+}
+
+.heading .item {
+   padding-left:     4px;
+   padding-right:    2px;
+   border-width:     1px;
+   border-style:     solid;
+   border-color:     #aaaaaa black black #aaaaaa;
+}
+
+.heading .hilight {
+   border-color:     #aaaaaa black yellow #aaaaaa;
+}
+
+.heading .depressed {
+   border-color:     black #aaaaaa #aaaaaa black;
+}
+
+
+.menu {
+   width:            100px;
+   color:            white;
+   background-color: #444499;
+   border-style:     solid;
+   border-width:     1px;
+   border-color:     #aaaaaa black black #aaaaaa;
+   padding:          2px;
+   position:         absolute;
+}
+
+.menu .item {
+   width:            100px;
+   margin-left:      6px;
+   margin-right:     6px;
+}
+
+.menu .hilight {
+   color:            white;
+   background-color: #7777dd;
+}
+
+
+.scrollable {
+   width:            100%;
+}
+
+.scrollable .content {
+   height:           500px;
+   overflow:         scroll;
+}

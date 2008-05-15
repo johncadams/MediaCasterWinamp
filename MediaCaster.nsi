@@ -14,7 +14,7 @@
 !include WinMessages.nsh
 
 !ifndef DIR
-!define DIR "."
+!define DIR "Build"
 !endif
 
 ; The name of the installer

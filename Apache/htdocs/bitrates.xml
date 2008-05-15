@@ -1,0 +1,20 @@
+<FORM METHOD="POST" ENCTYPE="application/x-www-form-urlencoded" NAME="config">
+  <TABLE>
+    <TR>
+      <TH CLASS="heading">Bitrate:</TH>
+      <TD>
+        <SELECT name="bitrate" onChange="return false">
+          <OPTION VALUE="24 kbps">24 kbps</OPTION>
+          <OPTION VALUE="40 kbps">40 kbps</OPTION>
+          <OPTION VALUE="56 kbps" SELECTED="selected">56 kbps</OPTION>
+          <OPTION VALUE="64 kbps">64 kbps</OPTION>
+          <OPTION VALUE="96 kbps">96 kbps</OPTION>
+          <OPTION VALUE="128 kbps">128 kbps</OPTION>
+          <OPTION VALUE="160 kbps">160 kbps</OPTION>
+          <OPTION VALUE="192 kbps">192 kbps</OPTION>
+          <OPTION VALUE="0">Full</OPTION>
+        </SELECT>
+      </TD>
+    </TR>
+  </TABLE>
+</FORM>

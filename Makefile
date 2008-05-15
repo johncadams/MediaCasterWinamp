@@ -1,10 +1,12 @@
-VERSION   = 1.50BETA
+VERSION   = 1.60BETA
 DEFINES   = -DMC_VERSION=\"$(VERSION)\" -DIS_BETA=1 -DDO_TRACING
+SDK_DIR   = ../Winamp SDK 5.02
 
-INC_PATH  = ..\Winamp SDK 5.02
-LIB_PATH  = ..\Winamp SDK 5.02\Build
+INC_PATH  = $(SDK_DIR)
+LIB_PATH  = $(SDK_DIR)/Build
 CPP       = g++
-CC_OPTS   = -DWIN32 -D_WIN32_IE=0x0500 -D_WINDOWS $(DEFINES) -I"$(INC_PATH)" -O0 -g -Wall -c -fmessage-length=0
+DATE      = `date "+%s"`
+CC_OPTS   = -DBUILD_DATE=\"$(DATE)\" -DWIN32 -D_WIN32_IE=0x0500 -D_WINDOWS $(DEFINES) -I"$(INC_PATH)" -O0 -g -Wall -c -fmessage-length=0
 LIBS      = -L"$(LIB_PATH)" -lwinamp -lwsock32 -lgdi32
 LD_OPTS   = $(LIBS) -shared
 NSIS      = makensis /V1 /DMC_VERSION=$(VERSION)
@@ -28,8 +30,7 @@ OBJS :=\
 	$(BUILD_DIR)/default.o
 
 
-all: $(BUILD_DIR)/ml_mcaster.dll
-
+all: $(BUILD_DIR)/MediaCaster.exe
 
 installer: $(BUILD_DIR)/MediaCaster.exe
 
@@ -39,6 +40,7 @@ $(BUILD_DIR):
 	
 	
 $(BUILD_DIR)/MediaCaster.exe: $(BUILD_DIR)/ml_mcaster.dll MediaCaster.nsi
+	@echo 'Creating client installer: $@'
 	$(NSIS) MediaCaster.nsi
 
 

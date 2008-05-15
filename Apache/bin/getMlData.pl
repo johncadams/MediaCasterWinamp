@@ -53,7 +53,7 @@ sub getInfo {
          # And to confuse matter the web interface (MediaCaster Server) needs
          # to undo these paths otherwise the browser gets confused so again any changes
          # here have to be reflected there as well.
-         $url =~ s/\.\//\/mp3\//g;
+         $url =~ s/\.\//\/mcaster\/web\//g;
          $url =~ s/\ /%20/g;
          $url =~ s/\#/%23/g;
 
