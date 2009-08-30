@@ -1,0 +1,19 @@
+<project name="MediaCaster" default="server.download" basedir=".">
+
+	<property name="apache.dir"            value="//dec/apache"/>
+	<property name="server.dir"            value="Apache/htdocs"/>
+		
+	<target name="server.download">
+		<sync todir="${server.dir}">
+			<fileset dir="${apache.dir}/htdocs/mcasterWeb" excludes="index.html"/>
+			<preserveintarget>
+				<include name="index.html"/>
+				<include name="ml_mcaster_config.gif"/>
+				<include name="ml_mcaster.gif"/>
+				<include name="**/CVS/**"/>
+			</preserveintarget>			
+		</sync>
+		<fixcrlf srcdir="${server.dir}" excludes="*.gif" />
+	</target>
+	
+</project>

@@ -8,7 +8,10 @@ var okBtnId     = "ok";
 var clearBtnId  = "clear";
 var downId      = "down";
 var menuId      = "menu";
-var module      = "tracks/";
+var tracksUrl   = "/mcaster/web/";
+var enqueueUrl  = tracksUrl + "?enqueue=1";
+var libraryUrl  = tracksUrl + "?library=1";
+var configUrl   = tracksUrl + "?bitrates=1";
 var tracks;
 var tbody;
 var statusBar;
@@ -273,7 +276,7 @@ function fetchXml(url, callback, method) {
 
 function chkPermissions() {
    var row = tracks[0];
-   var url = module + getMp3(row);
+   var url = tracksUrl + getMp3(row);
    setBusy("Checking...");
    fetchXml(url, handlePermissions, "HEAD");
 }
@@ -331,7 +334,7 @@ function getMp3(row) {
 
 
 function getPlayURL() {
-   var url     = module + "?action=enqueue";
+   var url     = enqueueUrl;
    var bitrate = document.forms.config.bitrate.value;
 
    if (bitrate!=0) {
@@ -363,13 +366,13 @@ function doDownload() {
 
 function doRefresh() {
    setBusy("Downloading: 0%");
-   fetchXml(module + "?action=library", handleRefresh);
+   fetchXml(libraryUrl, handleRefresh);
 }
 
 
 function getConfigBar() {
    setBusy("");
-   fetchXml(module + "?action=config", handleConfigBar);
+   fetchXml(configUrl, handleConfigBar);
 }
 
 
